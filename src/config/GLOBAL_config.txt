@@ -1,6 +1,0 @@
-Maximum lives=5
-Start lives=5
-Active bonuses=STRENGTH, PULL, GHOST
-Life recovery level count=3
-Life recovery count=1
-Timers activate=1

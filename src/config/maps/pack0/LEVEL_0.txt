@@ -1,0 +1,15 @@
+number=0
+name=Poziom 1
+bonus time=30
+penalty time=90
+fail time=150
+.
+########
+###___##
+#XSP__##
+###_PX##
+#X##P_##
+#_#_X_##
+#PPXPPX#
+#___X__#
+########
