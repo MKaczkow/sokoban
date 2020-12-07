@@ -1,5 +1,7 @@
 package elkaproj.config;
 
+import java.util.EnumSet;
+
 /**
  * Validates {@link IConfiguration} objects, to determine whether they are valid.
  */
@@ -18,9 +20,9 @@ public class ConfigurationValidator {
             return false;
         }
 
-        // Check if any level pack is loaded
-        ILevelPack levelPack = configuration.getLevelPack();
-        if (levelPack == null || levelPack.getCount() <= 0)
+        // Check if any level pack is configured
+        String levelPackId = configuration.getLevelPackId();
+        if (levelPackId == null)
             return false;
 
         // Check if at least 1 max life is given
@@ -38,7 +40,12 @@ public class ConfigurationValidator {
             return false;
 
         // Check if life recovery is >0 and <=max
-        int recl = configuration.getLifeRecoveryMagnitude();
-        return recl >= 1 && recl <= maxl;
+        int recl = configuration.getLifeRecoveryCount();
+        if (recl < 1 || recl > maxl)
+            return false;
+
+        // Check if bonuses overlap with legal options
+        EnumSet<GamePowerup> ref = EnumSet.allOf(GamePowerup.class);
+        return ref.containsAll(configuration.getActivePowerups());
     }
 }

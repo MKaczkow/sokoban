@@ -2,6 +2,7 @@ package elkaproj;
 
 import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 /**
@@ -38,6 +39,9 @@ public class Inspector {
 
         try {
             for (Field f : fields) {
+                //if (Modifier.isTransient(f.getModifiers()))
+                //    continue;
+
                 f.setAccessible(true);
                 String name = f.getName();
                 int l = name.length();

@@ -3,29 +3,29 @@ package elkaproj.config.impl;
 import elkaproj.config.GamePowerup;
 import elkaproj.config.IConfiguration;
 import elkaproj.config.IConfigurationLoader;
-import elkaproj.config.ILevelPack;
-import elkaproj.kvcreader.KVCName;
-import elkaproj.kvcreader.KVCReader;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.*;
 import java.io.Closeable;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.EnumSet;
+import java.util.List;
 
 /**
- * Loads configuration from file streams. The configuration uses Key-Value Configuration format, which is an ini-like simple text format. The configuration uses a line starting with dot (.) to denote
- * the end of one configuration stream. This allows for embedding multiple configuration streams or other data in a configuration file. The configuration is case-sensitive, and needs to have
- * following keys:
+ * Loads configuration from file streams. The configuration uses XML format. The configuration is case-sensitive, and
+ * needs to have following keys:
  *
  * <ul>
- *     <li>max lives - {@link IConfiguration#getMaxLives()}</li>
- *     <li>starting lives - {@link IConfiguration#getStartingLives()}</li>
- *     <li>active powerups - {@link IConfiguration#getActivePowerups()}</li>
- *     <li>life recovery threshold - {@link IConfiguration#getLifeRecoveryThreshold()}</li>
- *     <li>life recovery count - {@link IConfiguration#getLifeRecoveryMagnitude()}</li>
- *     <li>timers active - {@link IConfiguration#areTimersActive()}</li>
- *     <li>level pack - {@link IConfiguration#getLevelPack()}</li>
+ *     <li>max-lives - {@link IConfiguration#getMaxLives()}</li>
+ *     <li>start-lives - {@link IConfiguration#getStartingLives()}</li>
+ *     <li>zero o more active-powerup elements - {@link IConfiguration#getActivePowerups()} and {@link GamePowerup}</li>
+ *     <li>life-recovery-threshold - {@link IConfiguration#getLifeRecoveryThreshold()}</li>
+ *     <li>life-recovery-count - {@link IConfiguration#getLifeRecoveryCount()}</li>
+ *     <li>timers-active - {@link IConfiguration#areTimersActive()}</li>
+ *     <li>level-pack - {@link IConfiguration#getLevelPackId()}</li>
  * </ul>
  * @see IConfigurationLoader
  * @see IConfiguration
@@ -49,9 +49,11 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
      */
     @Override
     public IConfiguration load() {
-        try (KVCReader<FileConfiguration> reader = new KVCReader<>(this.inputStream, FileConfiguration.class)) {
-            return reader.readObject();
-        } catch (IOException | InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException | NoSuchFieldException e) {
+        try {
+            JAXBContext jaxbctx = JAXBContext.newInstance(XmlFileConfiguration.class);
+            Unmarshaller jaxb = jaxbctx.createUnmarshaller();
+            return (IConfiguration) jaxb.unmarshal(this.inputStream);
+        } catch (JAXBException e) {
             e.printStackTrace();
             return null;
         }
@@ -67,35 +69,41 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
     }
 
     /**
-     * A configuration object loaded from a file. For documentation of individual methods, see {@link IConfiguration}.
+     * Implements an XML-bindable configuration object. For more information see {@link IConfiguration}.
      * @see IConfiguration
      */
-    private static class FileConfiguration implements IConfiguration {
+    @XmlRootElement(name="configuration")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    private static class XmlFileConfiguration implements IConfiguration {
 
-        @KVCName(name="level pack")
-        private ILevelPack levelPack;
+        @XmlElement(name="level-pack")
+        private String levelPackId;
 
-        @KVCName(name="max lives")
-        private int maxLives;
+        @XmlElement(name="max-lives")
+        public int maxLives;
 
-        @KVCName(name="starting lives")
-        private int startingLives;
+        @XmlElement(name="start-lives")
+        public int startLives;
 
-        @KVCName(name="life recovery threshold")
-        private int lifeRecoveryThreshold;
+        @XmlElement(name="life-recovery-threshold")
+        public int lifeRecoveryThreshold;
 
-        @KVCName(name="life recovery count")
-        private int lifeRecoveryMagnitude;
+        @XmlElement(name="life-recovery-count")
+        public int lifeRecoveryCount;
 
-        @KVCName(name="timers active")
+        @XmlElement(name="timers-active")
         private boolean timersActive;
 
-        @KVCName(name="active powerups")
-        private EnumSet<GamePowerup> activePowerups;
+        @XmlElement(name="active-powerup")
+        private List<String> activePowerups;
+
+        private transient EnumSet<GamePowerup> activePowerupsES;
+
+        private XmlFileConfiguration() { }
 
         @Override
-        public ILevelPack getLevelPack() {
-            return this.levelPack;
+        public String getLevelPackId() {
+            return this.levelPackId;
         }
 
         @Override
@@ -105,27 +113,35 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
 
         @Override
         public int getStartingLives() {
-            return this.startingLives;
+            return this.startLives;
         }
 
         @Override
         public int getLifeRecoveryThreshold() {
-            return 0;
+            return this.lifeRecoveryThreshold;
         }
 
         @Override
-        public int getLifeRecoveryMagnitude() {
-            return 0;
+        public int getLifeRecoveryCount() {
+            return this.lifeRecoveryCount;
         }
 
         @Override
         public boolean areTimersActive() {
-            return false;
+            return this.timersActive;
         }
 
         @Override
         public EnumSet<GamePowerup> getActivePowerups() {
-            return null;
+            if (this.activePowerupsES != null)
+                return this.activePowerupsES;
+
+            EnumSet<GamePowerup> powerups = EnumSet.noneOf(GamePowerup.class);
+            for (String s : this.activePowerups) {
+                powerups.add(GamePowerup.valueOf(s));
+            }
+
+            return this.activePowerupsES = powerups;
         }
     }
 }

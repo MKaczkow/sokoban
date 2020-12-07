@@ -30,14 +30,13 @@ import java.util.EnumSet;
  */
 public interface IConfiguration {
     /**
-     * Gets the currently-configured level pack the player will be playing. A level pack consists of metadata and
-     * levels, and is iterable.
+     * Gets the ID of the currently-configured level pack the player will be playing.
      *
-     * @return Level pack the player will be playing.
+     * @return ID of the level pack.
      * @see ILevelPack
      * @see ILevel
      */
-    ILevelPack getLevelPack();
+    String getLevelPackId();
 
     /**
      * Gets the maximum number of lives a player can have. This number has to be greater than 0.
@@ -76,7 +75,7 @@ public interface IConfiguration {
      *
      * @return The number of lives recovered after successfully completing several levels in a row.
      */
-    int getLifeRecoveryMagnitude();
+    int getLifeRecoveryCount();
 
     /**
      * Gets whether level timers are active. Level timers define 3 time thresholds exceeding or completing under which

@@ -1,9 +1,3 @@
-number=0
-name=Poziom 1
-bonus time=30
-penalty time=90
-fail time=150
-.
 ########
 ###___##
 #XSP__##

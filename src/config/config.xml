@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+	<lives max="5" start="5" recovery-threshold="3" recovery-count="1" />
+	<max-lives>5</max-lives>
+	<start-lives>5</start-lives>
+	<life-recovery-threshold>3</life-recovery-threshold>
+	<life-recovery-count>1</life-recovery-count>
+	<active-powerup>STRENGTH</active-powerup>
+	<active-powerup>GHOST</active-powerup>
+	<active-powerup>PULL</active-powerup>
+	<timers-active>true</timers-active>
+	<level-pack>pack0</level-pack>
+</configuration>

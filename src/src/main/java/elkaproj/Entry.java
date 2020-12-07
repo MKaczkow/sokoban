@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class Entry {
     public static void main(String[] args) {
-        File f = new File("config", "config.txt");
+        File f = new File("config", "config.xml");
         IConfiguration config = null;
         try (FileInputStream fi = new FileInputStream(f)) {
             try (FileConfigurationLoader loader = new FileConfigurationLoader(fi)) {
@@ -20,10 +20,10 @@ public class Entry {
             e.printStackTrace();
         }
 
-        Inspector inspector = new Inspector(System.out);
-        inspector.inspect(config);
-
         System.out.print("Configuration valid? ");
         System.out.println(ConfigurationValidator.validateConfiguration(config));
+
+        Inspector inspector = new Inspector(System.out);
+        inspector.inspect(config);
     }
 }
