@@ -4,14 +4,25 @@ import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
+/**
+ * Inspects objects and prints out declared fields and their values.
+ */
 public class Inspector {
 
     private final PrintStream writer;
 
+    /**
+     * Creates a new inspector which writes to specified PrintStream.
+     * @param writer PrintStream to write to.
+     */
     public Inspector(PrintStream writer) {
         this.writer = writer;
     }
 
+    /**
+     * Inspects an object.
+     * @param o Object to inspect.
+     */
     public void inspect(Object o) {
         if (o == null) {
             this.writer.println("Object is null.\n");

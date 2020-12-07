@@ -8,19 +8,45 @@ import elkaproj.kvcreader.KVCName;
 import elkaproj.kvcreader.KVCReader;
 
 import java.io.Closeable;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.EnumSet;
 
+/**
+ * Loads configuration from file streams. The configuration uses Key-Value Configuration format, which is an ini-like simple text format. The configuration uses a line starting with dot (.) to denote
+ * the end of one configuration stream. This allows for embedding multiple configuration streams or other data in a configuration file. The configuration is case-sensitive, and needs to have
+ * following keys:
+ *
+ * <ul>
+ *     <li>max lives - {@link IConfiguration#getMaxLives()}</li>
+ *     <li>starting lives - {@link IConfiguration#getStartingLives()}</li>
+ *     <li>active powerups - {@link IConfiguration#getActivePowerups()}</li>
+ *     <li>life recovery threshold - {@link IConfiguration#getLifeRecoveryThreshold()}</li>
+ *     <li>life recovery count - {@link IConfiguration#getLifeRecoveryMagnitude()}</li>
+ *     <li>timers active - {@link IConfiguration#areTimersActive()}</li>
+ *     <li>level pack - {@link IConfiguration#getLevelPack()}</li>
+ * </ul>
+ * @see IConfigurationLoader
+ * @see IConfiguration
+ */
 public class FileConfigurationLoader implements IConfigurationLoader, Closeable {
 
-    private final InputStream inputStream;
+    private final FileInputStream inputStream;
 
-    public FileConfigurationLoader(InputStream inputStream) {
+    /**
+     * Creates a new configuration loader from given file stream.
+     * @param inputStream Input stream to read configuration from.
+     */
+    public FileConfigurationLoader(FileInputStream inputStream) {
         this.inputStream = inputStream;
     }
 
+    /**
+     * Loads a configuration object and returns it.
+     * @return Loaded configuration object.
+     * @see IConfiguration
+     */
     @Override
     public IConfiguration load() {
         try (KVCReader<FileConfiguration> reader = new KVCReader<>(this.inputStream, FileConfiguration.class)) {
@@ -31,11 +57,19 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
         }
     }
 
+    /**
+     * Closes this reader and the underlying stream.
+     * @throws IOException An exception occured while closing the underlying stream.
+     */
     @Override
     public void close() throws IOException {
         this.inputStream.close();
     }
 
+    /**
+     * A configuration object loaded from a file. For documentation of individual methods, see {@link IConfiguration}.
+     * @see IConfiguration
+     */
     private static class FileConfiguration implements IConfiguration {
 
         @KVCName(name="level pack")

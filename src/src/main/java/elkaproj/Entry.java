@@ -1,5 +1,6 @@
 package elkaproj;
 
+import elkaproj.config.ConfigurationValidator;
 import elkaproj.config.IConfiguration;
 import elkaproj.config.impl.FileConfigurationLoader;
 
@@ -21,5 +22,8 @@ public class Entry {
 
         Inspector inspector = new Inspector(System.out);
         inspector.inspect(config);
+
+        System.out.print("Configuration valid? ");
+        System.out.println(ConfigurationValidator.validateConfiguration(config));
     }
 }

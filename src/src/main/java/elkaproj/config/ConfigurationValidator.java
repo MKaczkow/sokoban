@@ -13,6 +13,11 @@ public class ConfigurationValidator {
      * @see IConfiguration
      */
     public static boolean validateConfiguration(IConfiguration configuration) {
+        // Check if any configuration supplied at all.
+        if (configuration == null) {
+            return false;
+        }
+
         // Check if any level pack is loaded
         ILevelPack levelPack = configuration.getLevelPack();
         if (levelPack == null || levelPack.getCount() <= 0)
