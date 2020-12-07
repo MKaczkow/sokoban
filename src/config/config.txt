@@ -1,0 +1,7 @@
+max lives=5
+starting lives=5
+active powerups=STRENGTH, PULL, GHOST
+life recovery threshold=3
+life recovery count=1
+timers active=true
+level pack=pack0
