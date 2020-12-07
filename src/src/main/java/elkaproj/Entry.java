@@ -2,28 +2,33 @@ package elkaproj;
 
 import elkaproj.config.ConfigurationValidator;
 import elkaproj.config.IConfiguration;
+import elkaproj.config.ILevelPack;
+import elkaproj.config.ILevelPackLoader;
 import elkaproj.config.impl.FileConfigurationLoader;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 
 public class Entry {
     public static void main(String[] args) {
         File f = new File("config", "config.xml");
         IConfiguration config = null;
-        try (FileInputStream fi = new FileInputStream(f)) {
-            try (FileConfigurationLoader loader = new FileConfigurationLoader(fi)) {
-                config = loader.load();
+        ILevelPack levelPack = null;
+        try (FileConfigurationLoader loader = new FileConfigurationLoader(f)) {
+            config = loader.load();
+
+            System.out.print("Configuration valid? ");
+            System.out.println(ConfigurationValidator.validateConfiguration(config));
+
+            try (ILevelPackLoader lvlloader = loader.getLevelPackLoader()) {
+                levelPack = lvlloader.loadPack(config.getLevelPackId());
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        System.out.print("Configuration valid? ");
-        System.out.println(ConfigurationValidator.validateConfiguration(config));
-
         Inspector inspector = new Inspector(System.out);
         inspector.inspect(config);
+        inspector.inspect(levelPack);
     }
 }

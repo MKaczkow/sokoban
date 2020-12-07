@@ -3,14 +3,13 @@ package elkaproj.config.impl;
 import elkaproj.config.GamePowerup;
 import elkaproj.config.IConfiguration;
 import elkaproj.config.IConfigurationLoader;
+import elkaproj.config.ILevelPackLoader;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
-import java.io.Closeable;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -33,13 +32,15 @@ import java.util.List;
 public class FileConfigurationLoader implements IConfigurationLoader, Closeable {
 
     private final FileInputStream inputStream;
+    private final File file;
 
     /**
      * Creates a new configuration loader from given file stream.
-     * @param inputStream Input stream to read configuration from.
+     * @param file File to read configuration from.
      */
-    public FileConfigurationLoader(FileInputStream inputStream) {
-        this.inputStream = inputStream;
+    public FileConfigurationLoader(File file) throws FileNotFoundException {
+        this.file = file;
+        this.inputStream = new FileInputStream(file);
     }
 
     /**
@@ -57,6 +58,16 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * Gets the file-based level pack loader.
+     * @return File level pack loader.
+     */
+    @Override
+    public ILevelPackLoader getLevelPackLoader() {
+        File maps = new File(this.file.getParent(), "maps");
+        return new FileLevelPackLoader(maps);
     }
 
     /**
