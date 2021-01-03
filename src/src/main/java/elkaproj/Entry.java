@@ -4,6 +4,8 @@ import elkaproj.config.ConfigurationValidator;
 import elkaproj.config.IConfiguration;
 import elkaproj.config.ILevelPack;
 import elkaproj.config.ILevelPackLoader;
+import elkaproj.config.commandline.CommandLineOptions;
+import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.config.impl.FileConfigurationLoader;
 
 import java.io.File;
@@ -30,5 +32,14 @@ public class Entry {
         Inspector inspector = new Inspector(System.out);
         inspector.inspect(config);
         inspector.inspect(levelPack);
+
+        CommandLineParser clp = new CommandLineParser(args);
+        CommandLineOptions opts = clp.parse(CommandLineOptions.class);
+        inspector.inspect(opts);
+
+        if (opts.isHelp()) {
+            clp.printHelp(System.out, CommandLineOptions.class);
+            return;
+        }
     }
 }
