@@ -6,21 +6,21 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CommandLineParser {
+public class CommandLineParser<T> {
 
-    private final String[] args;
+    private final Argument[] args;
+    private final Class<T> klass;
 
-    public CommandLineParser(String[] args) {
-        this.args = args;
+    public CommandLineParser(Class<T> klass) {
+        this.klass = klass;
+        this.args = this.buildOptionList(this.klass);
     }
 
-    public <T> T parse(Class<T> klass) throws IllegalArgumentException {
-        List<Argument> argList = this.buildOptionList(klass);
-
-        Map<String, Argument> fullNames = argList.stream()
+    public T parse(String[] args) throws IllegalArgumentException {
+        Map<String, Argument> fullNames = Arrays.stream(this.args)
                 .collect(Collectors.toMap(x -> x.fullName, x -> x));
 
-        Map<Character, Argument> shorthands = argList.stream()
+        Map<Character, Argument> shorthands = Arrays.stream(this.args)
                 .filter(x -> x.shorthand != '\0')
                 .collect(Collectors.toMap(x -> x.shorthand, x -> x));
 
@@ -36,7 +36,7 @@ public class CommandLineParser {
         }
 
         Argument state = null;
-        for (String arg : this.args) {
+        for (String arg : args) {
             if (state != null) {
                 this.setValueFor(arg, state, val, String.valueOf(state.shorthand));
                 processedArguments.add(state);
@@ -60,7 +60,7 @@ public class CommandLineParser {
         if (state != null)
             throw new IllegalArgumentException("Missing value for " + state.shorthand);
 
-        for (Argument arg : argList) {
+        for (Argument arg : this.args) {
             if (processedArguments.contains(arg)) {
                 continue;
             }
@@ -78,7 +78,7 @@ public class CommandLineParser {
         return val;
     }
 
-    private <T> void parseLongArg(String argv, T target, Map<String, Argument> nameMap, HashSet<Argument> processedArguments) {
+    private void parseLongArg(String argv, T target, Map<String, Argument> nameMap, HashSet<Argument> processedArguments) {
         int nameEnd = argv.indexOf('=');
 
         boolean hasValue = false;
@@ -115,7 +115,7 @@ public class CommandLineParser {
     }
 
     // returns the state to hold
-    private <T> Argument parseShortArgs(String argv, T target, Map<Character, Argument> nameMap, HashSet<Argument> processedArguments) {
+    private Argument parseShortArgs(String argv, T target, Map<Character, Argument> nameMap, HashSet<Argument> processedArguments) {
         if (argv.length() < 1)
             throw new IllegalArgumentException("Empty string is not a valid argument name.");
 
@@ -148,7 +148,7 @@ public class CommandLineParser {
         return null;
     }
 
-    private <T> void setValueFor(Object value, Argument arg, T target, String name) {
+    private void setValueFor(Object value, Argument arg, T target, String name) {
         try {
             if (arg.type == CommandLineArgumentType.NUMBER) {
                 value = Integer.valueOf((String)value);
@@ -160,12 +160,10 @@ public class CommandLineParser {
         }
     }
 
-    public <T> void printHelp(PrintStream output, Class<T> klass) {
-        List<Argument> argList = this.buildOptionList(klass);
-
+    public void printHelp(PrintStream output) {
         output.println("Available options:");
         output.println();
-        for (Argument arg : argList) {
+        for (Argument arg : this.args) {
             output.print("  --");
             output.print(arg.fullName);
 
@@ -194,7 +192,7 @@ public class CommandLineParser {
         }
     }
 
-    private List<Argument> buildOptionList(Class<?> klass) {
+    private Argument[] buildOptionList(Class<?> klass) {
         Field[] fields = klass.getDeclaredFields();
         ArrayList<Argument> argumentModels = new ArrayList<>();
         for (Field f : fields) {
@@ -232,7 +230,9 @@ public class CommandLineParser {
             argumentModels.add(argModel);
         }
 
-        return argumentModels;
+        Argument[] argumentModelArray = new Argument[argumentModels.size()];
+        argumentModels.toArray(argumentModelArray);
+        return argumentModelArray;
     }
 
     private static class Argument {

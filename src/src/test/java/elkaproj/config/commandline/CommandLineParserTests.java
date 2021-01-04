@@ -31,7 +31,7 @@ public class CommandLineParserTests {
 
     @Test
     public void testHelp() {
-        CommandLineParser clp = new CommandLineParser(new String[] {});
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             try (PrintStream ps = new PrintStream(baos, true, UTF8)) {
@@ -43,7 +43,7 @@ public class CommandLineParserTests {
                 f.setAccessible(true);
                 f.set(bw, "\n");
 
-                clp.printHelp(ps, CommandLineOptions.class);
+                clp.printHelp(ps);
             }
 
             Assert.assertEquals(expectedHelp, baos.toString(UTF8));
@@ -55,66 +55,90 @@ public class CommandLineParserTests {
 
     @Test
     public void testLongArguments() {
-        CommandLineParser clp = new CommandLineParser(new String[] { "--debug", "--online-hostname=test.example.com", "--online-port=42069" });
-        CommandLineOptions opts = clp.parse(CommandLineOptions.class);
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "--debug", "--online-hostname=test.example.com", "--online-port=42069" });
 
         this.assertCommon1(opts);
     }
 
     @Test
     public void testShortArguments1() {
-        CommandLineParser clp = new CommandLineParser(new String[] { "-dstest.example.com", "-p42069" });
-        CommandLineOptions opts = clp.parse(CommandLineOptions.class);
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "-dstest.example.com", "-p42069" });
 
         this.assertCommon1(opts);
     }
 
     @Test
     public void testShortArguments2() {
-        CommandLineParser clp = new CommandLineParser(new String[] { "-d", "-stest.example.com", "-p42069" });
-        CommandLineOptions opts = clp.parse(CommandLineOptions.class);
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "-d", "-stest.example.com", "-p42069" });
 
         this.assertCommon1(opts);
     }
 
     @Test
     public void testShortArguments3() {
-        CommandLineParser clp = new CommandLineParser(new String[] { "-d", "-s", "test.example.com", "-p42069" });
-        CommandLineOptions opts = clp.parse(CommandLineOptions.class);
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "-d", "-s", "test.example.com", "-p42069" });
 
         this.assertCommon1(opts);
     }
 
     @Test
     public void testShortArguments4() {
-        CommandLineParser clp = new CommandLineParser(new String[] { "-dho" });
-        CommandLineOptions opts = clp.parse(CommandLineOptions.class);
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "-dho" });
 
         this.assertCommon2(opts);
     }
 
     @Test
     public void testShortArguments5() {
-        CommandLineParser clp = new CommandLineParser(new String[] { "-dh", "-o" });
-        CommandLineOptions opts = clp.parse(CommandLineOptions.class);
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "-dh", "-o" });
 
         this.assertCommon2(opts);
     }
 
     @Test
     public void testShortArguments6() {
-        CommandLineParser clp = new CommandLineParser(new String[] { "-d", "-h", "-o" });
-        CommandLineOptions opts = clp.parse(CommandLineOptions.class);
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "-d", "-h", "-o" });
 
         this.assertCommon2(opts);
     }
 
     @Test
     public void testMixedArguments() {
-        CommandLineParser clp = new CommandLineParser(new String[] { "-d", "--online-hostname=test.example.com", "-p", "42069" });
-        CommandLineOptions opts = clp.parse(CommandLineOptions.class);
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "-d", "--online-hostname=test.example.com", "-p", "42069" });
 
         this.assertCommon1(opts);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testThrowsIncompleteArg1() {
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "-p" });
+
+        Assert.assertNull(opts);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testThrowsIncompleteArg2() {
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "--online-port" });
+
+        Assert.assertNull(opts);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testThrowsUnknownArg() {
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(new String[] { "--lmao" });
+
+        Assert.assertNull(opts);
     }
 
     private void assertCommon1(CommandLineOptions opts) {

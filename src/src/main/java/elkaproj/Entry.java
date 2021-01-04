@@ -13,14 +13,34 @@ import java.io.IOException;
 
 public class Entry {
     public static void main(String[] args) {
+        // parse commandline options
+        CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
+        CommandLineOptions opts = clp.parse(args);
+
+        // print help and quit if requested
+        if (opts.isHelp()) {
+            clp.printHelp(System.out);
+            return;
+        }
+
+        // enable debug, if applicable, and inspect options
+        Inspector inspector = Inspector.INSTANCE;
+        if (opts.isDebug()) {
+            DebugWriter.setEnabled(true);
+            DebugWriter.INSTANCE.logMessage("INIT", "Application initializing...");
+            inspector.inspect(opts);
+        }
+
+        // load configuration
+        // TODO: networked load if applicable
+        // TODO: delegate to UI?
         File f = new File("config", "config.xml");
         IConfiguration config = null;
         ILevelPack levelPack = null;
         try (FileConfigurationLoader loader = new FileConfigurationLoader(f)) {
             config = loader.load();
 
-            System.out.print("Configuration valid? ");
-            System.out.println(ConfigurationValidator.validateConfiguration(config));
+            DebugWriter.INSTANCE.logMessage("INIT", "Configuration valid? %b", ConfigurationValidator.validateConfiguration(config));
 
             try (ILevelPackLoader lvlloader = loader.getLevelPackLoader()) {
                 levelPack = lvlloader.loadPack(config.getLevelPackId());
@@ -29,17 +49,8 @@ public class Entry {
             e.printStackTrace();
         }
 
-        Inspector inspector = new Inspector(System.out);
+        // inspect config
         inspector.inspect(config);
         inspector.inspect(levelPack);
-
-        CommandLineParser clp = new CommandLineParser(args);
-        CommandLineOptions opts = clp.parse(CommandLineOptions.class);
-        inspector.inspect(opts);
-
-        if (opts.isHelp()) {
-            clp.printHelp(System.out, CommandLineOptions.class);
-            return;
-        }
     }
 }

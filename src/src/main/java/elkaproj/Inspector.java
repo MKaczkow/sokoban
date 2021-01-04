@@ -1,8 +1,6 @@
 package elkaproj;
 
-import java.io.PrintStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 /**
@@ -10,14 +8,15 @@ import java.util.Arrays;
  */
 public class Inspector {
 
-    private final PrintStream writer;
+    /**
+     * Singleton instance of the inspector.
+     */
+    public static final Inspector INSTANCE = new Inspector();
 
     /**
      * Creates a new inspector which writes to specified PrintStream.
-     * @param writer PrintStream to write to.
      */
-    public Inspector(PrintStream writer) {
-        this.writer = writer;
+    private Inspector() {
     }
 
     /**
@@ -26,12 +25,12 @@ public class Inspector {
      */
     public void inspect(Object o) {
         if (o == null) {
-            this.writer.println("Object is null.\n");
+            DebugWriter.INSTANCE.logMessage("INSPECT", "Object is null.");
         }
 
         assert o != null;
         Class<?> type = o.getClass();
-        this.writer.println("Object of type " + type);
+        DebugWriter.INSTANCE.logMessage("INSPECT", "Object of type " + type);
         Field[] fields = type.getDeclaredFields();
         int ml = Arrays.stream(fields)
                 .mapToInt(x -> x.getName().length())
@@ -39,24 +38,14 @@ public class Inspector {
 
         try {
             for (Field f : fields) {
-                //if (Modifier.isTransient(f.getModifiers()))
-                //    continue;
-
                 f.setAccessible(true);
                 String name = f.getName();
                 int l = name.length();
-                this.writer.print(name);
-                this.writer.print(": ");
-                if (ml - l != 0) {
-                    this.writer.print(new String(new char[ml - l]).replace("\0", " "));
-                }
-
                 Object v = f.get(o);
-                if (v != null) {
-                    this.writer.println(v.toString());
-                } else {
-                    this.writer.println("<null>");
-                }
+                DebugWriter.INSTANCE.logMessage("INSPECT", "%s: %s%s",
+                        name,
+                        ml - l != 0 ? new String(new char[ml - l]).replace("\0", " ") : "",
+                        v != null ? v.toString() : "<null>");
             }
         } catch (Exception ex) {
             ex.printStackTrace();
