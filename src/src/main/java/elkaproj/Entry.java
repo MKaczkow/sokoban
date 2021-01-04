@@ -7,6 +7,7 @@ import elkaproj.config.ILevelPackLoader;
 import elkaproj.config.commandline.CommandLineOptions;
 import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.config.impl.FileConfigurationLoader;
+import elkaproj.ui.ProzektFrame;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,5 +53,9 @@ public class Entry {
         // inspect config
         inspector.inspect(config);
         inspector.inspect(levelPack);
+
+        // fire up the UI
+        ProzektFrame mainframe = new ProzektFrame();
+        mainframe.setVisible(true);
     }
 }
