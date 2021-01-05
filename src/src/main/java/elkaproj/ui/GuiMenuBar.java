@@ -32,6 +32,11 @@ public class GuiMenuBar extends JMenuBar {
         mGamePause.setActionCommand(GuiRootFrame.COMMAND_PAUSE_RESUME);
         mGame.add(mGamePause);
 
+        JMenuItem mGameStop = new JMenuItem("@menu.game.items.stop");
+        mGameStop.addActionListener(actionListener);
+        mGameStop.setActionCommand(GuiRootFrame.COMMAND_STOP);
+        mGame.add(mGameStop);
+
         JMenuItem mGameReset = new JMenuItem("@menu.game.items.reset");
         mGameReset.addActionListener(actionListener);
         mGameReset.setActionCommand(GuiRootFrame.COMMAND_RESET);

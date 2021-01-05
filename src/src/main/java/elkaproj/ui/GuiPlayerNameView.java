@@ -125,6 +125,17 @@ public class GuiPlayerNameView extends JPanel implements KeyListener {
     public void keyReleased(KeyEvent keyEvent) {
         if (keyEvent.getKeyCode() == KeyEvent.VK_ENTER)
             this.ok.doClick();
+
+        if (keyEvent.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+            JTextField textField = (JTextField) keyEvent.getComponent();
+            int pos = Integer.parseInt(textField.getName());
+
+            if (pos > 0) {
+                String name = String.valueOf(pos - 1);
+                JTextField nf = this.textFields.get(name);
+                nf.grabFocus();
+            }
+        }
     }
 
     private static class UpdateListener implements DocumentListener {
@@ -158,12 +169,6 @@ public class GuiPlayerNameView extends JPanel implements KeyListener {
 
             if (text == null || text.equals("")) {
                 this.view.updateName(pos, '\0');
-
-                if (pos > 0) {
-                    String name = String.valueOf(pos - 1);
-                    JTextField nf = this.view.textFields.get(name);
-                    nf.grabFocus();
-                }
 
                 return;
             }

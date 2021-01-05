@@ -1,7 +1,12 @@
 package elkaproj.ui;
 
 import elkaproj.DebugWriter;
+import elkaproj.config.IConfiguration;
+import elkaproj.config.ILevel;
+import elkaproj.config.ILevelPack;
 import elkaproj.config.language.Language;
+import elkaproj.game.GameController;
+import elkaproj.game.IGameLifecycleHandler;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -14,10 +19,11 @@ import java.awt.event.WindowEvent;
 /**
  * Main window class of the game. Holds all other components.
  */
-public class GuiRootFrame extends JFrame implements ActionListener {
+public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecycleHandler {
 
     public static final String COMMAND_EXIT = "PROZEkt_exit";
     public static final String COMMAND_PAUSE_RESUME = "PROZEkt_pause_resume";
+    public static final String COMMAND_STOP = "PROZEkt_stop";
     public static final String COMMAND_RESET = "PROZEkt_reset";
     public static final String COMMAND_SCOREBOARD = "PROZEkt_highscores";
     public static final String COMMAND_AUTHORS = "PROZEkt_authors";
@@ -26,36 +32,53 @@ public class GuiRootFrame extends JFrame implements ActionListener {
 
     private final Language language;
 
+    private final GuiStatusPanel statusPanel;
+
     private final GuiPlayerNameView playerNameView;
     private String playerName = null;
 
     private final GuiMainMenuView mainMenuView;
 
+    private final GuiCanvas gameView;
+    private final GameController gameController;
+
+    private Component activeComponent = null;
+
     /**
      * Creates an initializes a new game window.
      * @param language UI language to use.
      */
-    public GuiRootFrame(Language language) {
+    public GuiRootFrame(Language language, IConfiguration configuration, ILevelPack levelPack) {
         super("@window.title");
 
-        // set language
+        // set language and controller
         this.language = language;
+
+        this.gameController = new GameController(configuration, levelPack);
+        this.gameController.addLifecycleHandler(this);
 
         // set the listener so we can close the application
         this.addWindowListener(new GameFrameWindowAdapter());
 
+        // set layout
+        this.setLayout(new BorderLayout());
+
         // set size and location
-        this.setSize(640, 400);
-        this.setMinimumSize(new Dimension(640, 400));
+        this.setSize(640, 480);
+        this.setMinimumSize(new Dimension(640, 480));
         this.setLocationRelativeTo(null); // center on screen
 
         // add UI components
         this.setJMenuBar(new GuiMenuBar(this));
 
         this.playerNameView = new GuiPlayerNameView(this);
-        this.add(this.playerNameView);
+        this.setActiveView(this.playerNameView);
 
         this.mainMenuView = new GuiMainMenuView(this);
+        this.gameView = new GuiCanvas(this.gameController);
+
+        this.statusPanel = new GuiStatusPanel(this.gameController, this.getSize(), this.language);
+        this.add(this.statusPanel, BorderLayout.SOUTH);
     }
 
     private void localize(Component[] components) {
@@ -107,7 +130,7 @@ public class GuiRootFrame extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
-        JOptionPane.showMessageDialog(this, actionEvent.getActionCommand());
+        DebugWriter.INSTANCE.logMessage("EVENT-UI-ACTION", "Event triggered: %s", actionEvent.getActionCommand());
 
         switch (actionEvent.getActionCommand()) {
             case COMMAND_EXIT:
@@ -118,16 +141,57 @@ public class GuiRootFrame extends JFrame implements ActionListener {
                 this.playerName = this.playerNameView.getPlayerName();
 
                 if (this.playerName != null) {
-                    this.remove(this.playerNameView);
                     DebugWriter.INSTANCE.logMessage("PLAYER", "New player name (%d): '%s'", this.playerName.length(), this.playerName);
 
                     this.mainMenuView.setPlayerName(this.playerName);
-                    this.add(this.mainMenuView);
+                    this.setActiveView(this.mainMenuView);
                     this.forceUpdate();
                 }
 
                 break;
+
+            case COMMAND_NEW_GAME:
+                this.gameController.startGame();
+                break;
+
+            case COMMAND_STOP:
+                this.gameController.stopGame();
+                break;
         }
+    }
+
+    @Override
+    public void onGameStarted(ILevel currentLevel, int currentLives) {
+        this.setActiveView(this.gameView);
+    }
+
+    @Override
+    public void onGameStopped(int totalScore) {
+        this.setActiveView(this.mainMenuView);
+    }
+
+    @Override
+    public void onNextLevel(ILevel currentLevel, int totalScore) {
+
+    }
+
+    @Override
+    public void onLivesUpdated(int currentLives, int maxLives) {
+
+    }
+
+    @Override
+    public void onScoreUpdated(int currentScore, int totalScore) {
+
+    }
+
+    private void setActiveView(Component component) {
+        if (this.activeComponent != null)
+            this.remove(this.activeComponent);
+
+        this.add(component, BorderLayout.CENTER);
+        this.activeComponent = component;
+        this.forceUpdate();
     }
 
     private void forceUpdate() {

@@ -1,5 +1,7 @@
 package elkaproj.ui;
 
+import elkaproj.game.GameController;
+
 import java.awt.*;
 import java.awt.image.BufferStrategy;
 
@@ -10,6 +12,12 @@ public class GuiCanvas extends Canvas {
 
     // ATTN: when drawing use this
     private BufferStrategy bs = null;
+
+    private final GameController gameController;
+
+    public GuiCanvas(GameController gameController) {
+        this.gameController = gameController;
+    }
 
     @Override
     public void addNotify() {

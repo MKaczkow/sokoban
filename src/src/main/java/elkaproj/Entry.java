@@ -82,9 +82,11 @@ public class Entry {
         // fire up the UI
         // have to fix fonts first, since java can't into unicode
         Language finalUiLang = uiLang;
+        IConfiguration finalConfig = config;
+        ILevelPack finalLevelPack = levelPack;
         SwingUtilities.invokeLater(() -> {
             loadPlexFont();
-            GuiRootFrame mainframe = new GuiRootFrame(finalUiLang);
+            GuiRootFrame mainframe = new GuiRootFrame(finalUiLang, finalConfig, finalLevelPack);
             mainframe.setVisible(true);
         });
     }
