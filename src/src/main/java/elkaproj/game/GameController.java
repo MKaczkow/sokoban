@@ -1,8 +1,6 @@
 package elkaproj.game;
 
-import elkaproj.config.IConfiguration;
-import elkaproj.config.ILevel;
-import elkaproj.config.ILevelPack;
+import elkaproj.config.*;
 
 import java.util.ArrayList;
 
@@ -15,6 +13,7 @@ public class GameController {
     private final ILevelPack levelPack;
 
     private final ArrayList<IGameLifecycleHandler> lifecycleHandlers = new ArrayList<>();
+    private final ArrayList<IGameEventHandler> gameEventHandlers = new ArrayList<>();
 
     private int currentLives = 0;
     private int currentStreak = 0;
@@ -22,6 +21,10 @@ public class GameController {
     private ILevel currentLevel = null;
     private int currentScore = 0;
     private int totalScore = 0;
+
+    private LevelTile[][] board = null;
+    private boolean[][] crates = null;
+    private PlayerPosition playerPosition = null;
 
     /**
      * Initializes the controller.
@@ -96,6 +99,22 @@ public class GameController {
     }
 
     /**
+     * Adds a game event handler.
+     * @param gameEventHandler Game event handler.
+     */
+    public void addGameEventHandler(IGameEventHandler gameEventHandler) {
+        this.gameEventHandlers.add(gameEventHandler);
+    }
+
+    /**
+     * Removes a game event handler.
+     * @param gameEventHandler Game event handler.
+     */
+    public void removeGameEventHandler(IGameEventHandler gameEventHandler) {
+        this.gameEventHandlers.remove(gameEventHandler);
+    }
+
+    /**
      * Moves to the next level.
      * @return Whether a new level was loaded. If false, it means there are no more levels available.
      */
@@ -115,7 +134,30 @@ public class GameController {
         this.totalScore += this.currentScore;
         this.currentScore = 0;
 
+        Dimensions levelSize = this.currentLevel.getSize();
+        this.board = new LevelTile[levelSize.getHeight()][];
+        this.crates = new boolean[levelSize.getHeight()][];
+        LevelTile[][] levelTiles = this.currentLevel.getTiles();
+
+        for (int y = 0; y < levelSize.getHeight(); y++) {
+            this.board[y] = new LevelTile[levelSize.getWidth()];
+            this.crates[y] = new boolean[levelSize.getWidth()];
+
+            for (int x = 0; x < levelSize.getWidth(); x++) {
+                this.board[y][x] = levelTiles[y][x];
+                this.crates[y][x] = this.board[y][x] == LevelTile.CRATE;
+
+                if (this.board[y][x] == LevelTile.PLAYER) {
+                    this.playerPosition = new PlayerPosition(x, y);
+                    this.board[y][x] = LevelTile.FLOOR;
+                } else if (this.board[y][x] == LevelTile.CRATE) {
+                    this.board[y][x] = LevelTile.FLOOR;
+                }
+            }
+        }
+
         this.onScoreUpdated(this.currentScore, this.totalScore);
+        this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition);
 
         return true;
     }
@@ -182,6 +224,12 @@ public class GameController {
     private void onScoreUpdated(int currentScore, int totalScore) {
         for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
             handler.onScoreUpdated(currentScore, totalScore);
+        }
+    }
+
+    private void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, boolean[][] crates, PlayerPosition playerPosition) {
+        for (IGameEventHandler handler : this.gameEventHandlers) {
+            handler.onBoardUpdated(currentLevel, board, crates, playerPosition);
         }
     }
 }

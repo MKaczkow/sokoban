@@ -86,8 +86,12 @@ public class Entry {
         ILevelPack finalLevelPack = levelPack;
         SwingUtilities.invokeLater(() -> {
             loadPlexFont();
-            GuiRootFrame mainframe = new GuiRootFrame(finalUiLang, finalConfig, finalLevelPack);
-            mainframe.setVisible(true);
+            try {
+                GuiRootFrame mainframe = new GuiRootFrame(finalUiLang, finalConfig, finalLevelPack);
+                mainframe.setVisible(true);
+            } catch (Exception ex) {
+                DebugWriter.INSTANCE.logError("UI-INIT", ex, "Failed to initialize UI");
+            }
         });
     }
 
