@@ -4,7 +4,6 @@ import elkaproj.DebugWriter;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Enumeration;
@@ -36,6 +35,11 @@ public class LanguageLoader {
         }
     }
 
+    /**
+     * Loads specified language.
+     * @param code Language code of the language to load.
+     * @return Loaded language.
+     */
     public Language loadLanguage(String code) {
         if (!this.availableLanguages.contains(code))
             throw new IllegalArgumentException("Specified language is not available.");
