@@ -149,9 +149,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
     }
 
     private void updateBufferStrategy() {
-        if (this.getBufferStrategy() == null)
-            this.createBufferStrategy(3);
-
+        this.createBufferStrategy(3);
         this.bs = this.getBufferStrategy();
     }
 
@@ -162,6 +160,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
     @Override
     public void onGameStopped(int totalScore, boolean completed) {
         this.isRunning = false;
+        this.bs = null;
     }
 
     @Override
@@ -237,12 +236,13 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
             if (this.guiCanvas.bs == null)
                 return;
 
+            BufferStrategy bs = this.guiCanvas.bs;
             try {
                 this.guiCanvas.boardLock.lock();
 
                 do {
                     do {
-                        Graphics g = this.guiCanvas.bs.getDrawGraphics();
+                        Graphics g = bs.getDrawGraphics();
 
                         this.guiCanvas.tileSize = this.guiCanvas.computeTileSize();
                         this.guiCanvas.tileStart = this.guiCanvas.computeTileStart(this.guiCanvas.tileSize);
@@ -256,10 +256,10 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
                         this.guiCanvas.drawCrateLayer(g, this.guiCanvas.crates, this.guiCanvas.playerPosition);
 
                         g.dispose();
-                    } while (this.guiCanvas.bs.contentsRestored());
+                    } while (bs.contentsRestored());
 
-                    this.guiCanvas.bs.show();
-                } while (this.guiCanvas.bs.contentsLost());
+                    bs.show();
+                } while (bs.contentsLost());
             } finally {
                 this.guiCanvas.boardLock.unlock();
             }
