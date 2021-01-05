@@ -1,9 +1,7 @@
 package elkaproj;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 

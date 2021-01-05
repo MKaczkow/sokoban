@@ -1,6 +1,5 @@
 package elkaproj.ui;
 
-import elkaproj.DebugWriter;
 import elkaproj.config.Dimensions;
 import elkaproj.config.ILevel;
 import elkaproj.config.LevelTile;
@@ -8,7 +7,10 @@ import elkaproj.game.*;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.io.IOException;
 import java.util.TimerTask;
