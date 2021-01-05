@@ -5,6 +5,7 @@ import elkaproj.DebugWriter;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,8 +26,8 @@ public class LanguageParser implements Closeable {
         sectionTarget = ltm.sectionTarget;
     }
 
-    public LanguageParser(InputStream langFile) {
-        this.br = new BufferedReader(new InputStreamReader(langFile));
+    public LanguageParser(InputStream langFile) throws UnsupportedEncodingException {
+        this.br = new BufferedReader(new InputStreamReader(langFile, StandardCharsets.UTF_8.name()));
     }
 
     public Language parse() throws IOException, IllegalArgumentException, IllegalStateException {

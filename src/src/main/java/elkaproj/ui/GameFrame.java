@@ -3,6 +3,7 @@ package elkaproj.ui;
 import elkaproj.config.language.Language;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -78,6 +79,12 @@ public class GameFrame extends JFrame implements ActionListener {
                 String text = ((JLabel) component).getText();
                 if (text.startsWith("@"))
                     ((JLabel) component).setText(this.language.getValue(text.substring(1)));
+            }
+
+            if (component instanceof JTextComponent) {
+                String text = ((JTextComponent) component).getText();
+                if (text.startsWith("@"))
+                    ((JTextComponent) component).setText(this.language.getValue(text.substring(1)));
             }
         }
     }

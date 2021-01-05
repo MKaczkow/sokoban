@@ -1,0 +1,33 @@
+%name English (United States)
+
+[window]
+title = PROZEkt Sokoban
+
+# window.title = ...
+
+[menu]
+[.file]
+label = File
+
+[.items]
+exit = Exit
+
+[....game]
+label = Game
+
+[.items]
+pause = Pause
+resume = Resume
+reset = Reset level
+scoreboard = High scores
+authors = Authors
+
+# menu.file.label = ...
+# menu.file.items.exit = ...
+#
+# menu.game.label = ...
+# menu.game.items.pause = ...
+# menu.game.items.resume = ...
+# menu.game.items.reset = ...
+# menu.game.items.scoreboard = ...
+# menu.game.items.authors = ...

@@ -81,9 +81,12 @@ public class Entry {
 
         // fire up the UI
         // have to fix fonts first, since java can't into unicode
-        loadPlexFont();
-        GameFrame mainframe = new GameFrame(uiLang);
-        mainframe.setVisible(true);
+        Language finalUiLang = uiLang;
+        SwingUtilities.invokeLater(() -> {
+            loadPlexFont();
+            GameFrame mainframe = new GameFrame(finalUiLang);
+            mainframe.setVisible(true);
+        });
     }
 
     private static void loadPlexFont() {

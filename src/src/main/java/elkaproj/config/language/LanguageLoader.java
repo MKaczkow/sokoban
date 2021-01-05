@@ -46,12 +46,10 @@ public class LanguageLoader {
             try (LanguageParser parser = new LanguageParser(languageFile)) {
                 return parser.parse();
             }
-        }
-        catch (IllegalStateException | IllegalArgumentException ex) {
+        } catch (IllegalStateException | IllegalArgumentException ex) {
             DebugWriter.INSTANCE.logError("LANG-LDR", ex, "Failed to load language %s.", code);
             throw ex;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             DebugWriter.INSTANCE.logError("LANG-LDR", ex, "Failed to load language %s.", code);
             return null;
         }
