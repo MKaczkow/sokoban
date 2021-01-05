@@ -11,16 +11,16 @@ import elkaproj.game.IGameLifecycleHandler;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.IOException;
 
 /**
  * Main window class of the game. Holds all other components.
  */
 public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecycleHandler {
+
+    public static final String STRING_WIN_DIALOG_TITLE_L10N_ID = "dialogs.win.title";
+    public static final String STRING_WIN_DIALOG_CONTENTS_L10N_ID = "dialogs.win.message";
 
     public static final String COMMAND_EXIT = "PROZEkt_exit";
     public static final String COMMAND_PAUSE_RESUME = "PROZEkt_pause_resume";
@@ -59,7 +59,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
         this.gameController.addLifecycleHandler(this);
 
         // set the listener so we can close the application
-        this.addWindowListener(new GameFrameWindowAdapter());
+        this.addWindowListener(new GameFrameWindowAdapter(this));
 
         // set layout
         this.setLayout(new BorderLayout());
@@ -135,6 +135,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
         switch (actionEvent.getActionCommand()) {
             case COMMAND_EXIT:
+                this.gameView.performShutdown();
                 this.dispose();
                 break;
 
@@ -156,7 +157,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
                 break;
 
             case COMMAND_STOP:
-                this.gameController.stopGame();
+                this.gameController.stopGame(false);
                 break;
         }
     }
@@ -167,23 +168,26 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
     }
 
     @Override
-    public void onGameStopped(int totalScore) {
+    public void onGameStopped(int totalScore, boolean completed) {
+        if (completed)
+            JOptionPane.showMessageDialog(this,
+                    String.format(this.language.getValue(STRING_WIN_DIALOG_CONTENTS_L10N_ID), totalScore),
+                    this.language.getValue(STRING_WIN_DIALOG_TITLE_L10N_ID),
+                    JOptionPane.INFORMATION_MESSAGE);
+
         this.setActiveView(this.mainMenuView);
     }
 
     @Override
     public void onNextLevel(ILevel currentLevel, int totalScore) {
-
     }
 
     @Override
     public void onLivesUpdated(int currentLives, int maxLives) {
-
     }
 
     @Override
     public void onScoreUpdated(int currentScore, int totalScore) {
-
     }
 
     private void setActiveView(Component component) {
@@ -193,6 +197,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
         this.add(component, BorderLayout.CENTER);
         this.activeComponent = component;
         this.forceUpdate();
+        this.activeComponent.requestFocus();
     }
 
     private void forceUpdate() {
@@ -201,9 +206,22 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
     }
 
     private static class GameFrameWindowAdapter extends WindowAdapter {
+
+        private final GuiRootFrame guiRootFrame;
+
+        public GameFrameWindowAdapter(GuiRootFrame guiRootFrame) {
+            this.guiRootFrame = guiRootFrame;
+        }
+
         @Override
         public void windowClosing(WindowEvent windowEvent) {
             System.exit(0);
+            this.guiRootFrame.gameView.performShutdown();
+        }
+
+        @Override
+        public void windowActivated(WindowEvent windowEvent) {
+            this.guiRootFrame.activeComponent.requestFocus();
         }
     }
 }

@@ -1,16 +1,14 @@
 package elkaproj.ui;
 
+import elkaproj.DebugWriter;
 import elkaproj.config.Dimensions;
 import elkaproj.config.ILevel;
 import elkaproj.config.LevelTile;
-import elkaproj.game.GameController;
-import elkaproj.game.IGameEventHandler;
-import elkaproj.game.PlayerPosition;
+import elkaproj.game.*;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.*;
 import java.awt.image.BufferStrategy;
 import java.io.IOException;
 import java.util.TimerTask;
@@ -19,12 +17,13 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Root canvas, on which the actual game will be drawn.
  */
-public class GuiCanvas extends Canvas implements IGameEventHandler {
+public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecycleHandler, KeyListener {
 
     private final GameController gameController;
 
     private Dimensions levelSize = null;
 
+    private boolean isRunning = false;
     private LevelTile[][] board = null;
     private boolean[][] crates = null;
     private PlayerPosition playerPosition = null;
@@ -41,6 +40,8 @@ public class GuiCanvas extends Canvas implements IGameEventHandler {
         this.gameController = gameController;
         this.gameController.addGameEventHandler(this);
         //this.addComponentListener(new ResizeListener(this));
+        this.addKeyListener(this);
+        this.setFocusable(true);
 
         this.timer = new java.util.Timer();
         this.timer.scheduleAtFixedRate(new BoardTimer(this), 50, 50);
@@ -50,6 +51,11 @@ public class GuiCanvas extends Canvas implements IGameEventHandler {
         this.tileTarget = ImageIO.read(this.getClass().getResource("/tiles/target.png"));
         this.tileCrate = ImageIO.read(this.getClass().getResource("/tiles/crate.png"));
         this.tilePlayer = ImageIO.read(this.getClass().getResource("/tiles/player.png"));
+    }
+
+    public void performShutdown() {
+        this.timer.cancel();
+        this.timer.purge();
     }
 
     @Override
@@ -114,6 +120,8 @@ public class GuiCanvas extends Canvas implements IGameEventHandler {
 
             this.tileSize = this.computeTileSize();
             this.tileStart = this.computeTileStart(this.tileSize);
+
+            this.isRunning = true;
         } finally {
             this.boardLock.unlock();
         }
@@ -147,6 +155,56 @@ public class GuiCanvas extends Canvas implements IGameEventHandler {
         this.bs = this.getBufferStrategy();
     }
 
+    @Override
+    public void onGameStarted(ILevel currentLevel, int currentLives) {
+    }
+
+    @Override
+    public void onGameStopped(int totalScore, boolean completed) {
+        this.isRunning = false;
+    }
+
+    @Override
+    public void onNextLevel(ILevel currentLevel, int totalScore) {
+    }
+
+    @Override
+    public void onLivesUpdated(int currentLives, int maxLives) {
+    }
+
+    @Override
+    public void onScoreUpdated(int currentScore, int totalScore) {
+    }
+
+    @Override
+    public void keyTyped(KeyEvent keyEvent) {
+    }
+
+    @Override
+    public void keyPressed(KeyEvent keyEvent) {
+    }
+
+    @Override
+    public void keyReleased(KeyEvent keyEvent) {
+        switch (keyEvent.getKeyCode()) {
+            case KeyEvent.VK_LEFT:
+                this.gameController.move(GameMovementDirection.LEFT);
+                break;
+
+            case KeyEvent.VK_RIGHT:
+                this.gameController.move(GameMovementDirection.RIGHT);
+                break;
+
+            case KeyEvent.VK_UP:
+                this.gameController.move(GameMovementDirection.UP);
+                break;
+
+            case KeyEvent.VK_DOWN:
+                this.gameController.move(GameMovementDirection.DOWN);
+                break;
+        }
+    }
+
     private static class ResizeListener extends ComponentAdapter {
 
         private final GuiCanvas guiCanvas;
@@ -173,6 +231,9 @@ public class GuiCanvas extends Canvas implements IGameEventHandler {
 
         @Override
         public void run() {
+            if (!this.guiCanvas.gameController.isGameRunning() || !this.guiCanvas.isRunning)
+                return;
+
             if (this.guiCanvas.bs == null)
                 return;
 

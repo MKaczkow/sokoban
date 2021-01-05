@@ -24,6 +24,7 @@ public class GameController {
 
     private LevelTile[][] board = null;
     private boolean[][] crates = null;
+    private int numCrates = 0, numMatched = 0;
     private PlayerPosition playerPosition = null;
 
     /**
@@ -83,6 +84,14 @@ public class GameController {
     }
 
     /**
+     * Gets whether a game is active.
+     * @return Whether a game is active.
+     */
+    public boolean isGameRunning() {
+        return this.currentLevelNumber >= 0;
+    }
+
+    /**
      * Adds a game lifecycle event handler.
      * @param lifecycleHandler Game lifecycle event handler.
      */
@@ -133,6 +142,8 @@ public class GameController {
         this.currentLevel = this.levelPack.getLevel(this.currentLevelNumber);
         this.totalScore += this.currentScore;
         this.currentScore = 0;
+        this.numCrates = 0;
+        this.numMatched = 0;
 
         Dimensions levelSize = this.currentLevel.getSize();
         this.board = new LevelTile[levelSize.getHeight()][];
@@ -145,7 +156,11 @@ public class GameController {
 
             for (int x = 0; x < levelSize.getWidth(); x++) {
                 this.board[y][x] = levelTiles[y][x];
-                this.crates[y][x] = this.board[y][x] == LevelTile.CRATE;
+
+                if (this.board[y][x] == LevelTile.CRATE) {
+                    this.crates[y][x] = true;
+                    this.numCrates++;
+                }
 
                 if (this.board[y][x] == LevelTile.PLAYER) {
                     this.playerPosition = new PlayerPosition(x, y);
@@ -181,12 +196,12 @@ public class GameController {
     /**
      * Stops the game, if applicable.
      */
-    public void stopGame() {
+    public void stopGame(boolean completed) {
         if (this.currentLevelNumber < 0)
             return;
 
         this.totalScore += this.currentScore;
-        this.onGameStopped(this.totalScore);
+        this.onGameStopped(this.totalScore, completed);
 
         this.currentLives = 0;
         this.currentStreak = 0;
@@ -196,6 +211,72 @@ public class GameController {
         this.totalScore = 0;
     }
 
+    /**
+     * Move the player in a direction.
+     * @param direction Direction to move the player in.
+     */
+    public void move(GameMovementDirection direction) {
+        if (this.currentLevelNumber < 0)
+            return;
+
+        PlayerPosition pos = this.playerPosition;
+        int xm = 0, ym = 0;
+        switch (direction) {
+            case RIGHT:
+                xm = 1;
+                break;
+
+            case LEFT:
+                xm = -1;
+                break;
+
+            case UP:
+                ym = -1;
+                break;
+
+            case DOWN:
+                ym = 1;
+                break;
+        }
+
+        PlayerPosition newPos = new PlayerPosition(playerPosition.getX() + xm, playerPosition.getY() + ym);
+        int nx = newPos.getX(), ny = newPos.getY();
+
+        // check if out of bounds
+        if (newPos.getX() < 0 || newPos.getX() > this.currentLevel.getSize().getWidth() || newPos.getY() < 0 || newPos.getY() > this.currentLevel.getSize().getHeight())
+            return;
+
+        // check if wall
+        if (this.board[ny][nx] == LevelTile.WALL)
+            return;
+
+        // check if crate
+        if (this.crates[ny][nx]) {
+            // check if stacked crate or stacked wall
+            if (this.crates[ny + ym][nx + xm] || this.board[ny + ym][nx + xm] == LevelTile.WALL)
+                return;
+
+            this.crates[ny + ym][nx + xm] = true;
+            this.crates[ny][nx] = false;
+
+            if (this.board[ny + ym][nx + xm] == LevelTile.TARGET_SPOT && this.board[ny][nx] != LevelTile.TARGET_SPOT)
+                this.numMatched++;
+            else if (this.board[ny + ym][nx + xm] != LevelTile.TARGET_SPOT && this.board[ny][nx] == LevelTile.TARGET_SPOT)
+                this.numMatched--;
+        }
+
+        this.playerPosition = newPos;
+        this.currentScore++;
+
+        this.onScoreUpdated(this.currentScore, this.totalScore);
+        this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition);
+
+        if (this.numMatched == this.numCrates) {
+            if (!this.nextLevel())
+                this.stopGame(true);
+        }
+    }
+
     // event dispatchers
     private void onGameStarted(ILevel currentLevel, int currentLives) {
         for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
@@ -203,9 +284,9 @@ public class GameController {
         }
     }
 
-    private void onGameStopped(int totalScore) {
+    private void onGameStopped(int totalScore, boolean completed) {
         for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
-            handler.onGameStopped(this.totalScore);
+            handler.onGameStopped(this.totalScore, completed);
         }
     }
 

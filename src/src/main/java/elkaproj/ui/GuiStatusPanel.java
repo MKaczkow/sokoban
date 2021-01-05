@@ -56,7 +56,7 @@ public class GuiStatusPanel extends JPanel implements IGameLifecycleHandler {
     }
 
     @Override
-    public void onGameStopped(int totalScore) {
+    public void onGameStopped(int totalScore, boolean completed) {
         this.status.setText(this.statusIdle);
     }
 

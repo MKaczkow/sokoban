@@ -30,6 +30,7 @@ public class GuiPlayerNameView extends JPanel implements KeyListener {
         super();
 
         // set layout
+        this.setFocusable(false);
         this.setLayout(new GridBagLayout());
         this.setBackground(Color.BLACK);
         this.setForeground(Color.WHITE);

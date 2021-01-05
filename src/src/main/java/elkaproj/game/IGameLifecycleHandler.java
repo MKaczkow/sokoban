@@ -17,8 +17,9 @@ public interface IGameLifecycleHandler {
     /**
      * Triggered whenever a game is finished.
      * @param totalScore Player's final total score.
+     * @param completed Whether the game was completed.
      */
-    void onGameStopped(int totalScore);
+    void onGameStopped(int totalScore, boolean completed);
 
     /**
      * Triggered whenever a new level is started.
