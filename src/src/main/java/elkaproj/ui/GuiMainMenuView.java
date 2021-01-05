@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 public class GuiMainMenuView extends JPanel {
 
     private String playerName;
+    private final JLabel playingAs;
 
     public GuiMainMenuView(ActionListener actionListener) {
         super();
@@ -58,10 +59,27 @@ public class GuiMainMenuView extends JPanel {
         quit.addActionListener(actionListener);
         menuPanel.add(quit);
 
+        JPanel playingAsPanel = new JPanel();
+        playingAsPanel.setBackground(Color.BLACK);
+        playingAsPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+
+        JLabel playingas = new JLabel("@mainmenu.playingas", JLabel.CENTER);
+        playingas.setForeground(Color.WHITE);
+        playingas.setFont(playingas.getFont().deriveFont(16f));
+        playingAsPanel.add(playingas);
+
+        this.playingAs = new JLabel("", JLabel.CENTER);
+        this.playingAs.setForeground(Color.WHITE);
+        this.playingAs.setFont(playingas.getFont().deriveFont(16f));
+        playingAsPanel.add(this.playingAs);
+
+        menuPanel.add(playingAsPanel);
+
         this.add(menuPanel, BorderLayout.CENTER);
     }
 
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
+        this.playingAs.setText(this.playerName);
     }
 }
