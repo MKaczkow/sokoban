@@ -52,6 +52,25 @@ title = PROZEkt Sokoban
 
 # window.title = ...
 
+[newgame]
+title = Nazwa gracza
+ok = OK
+
+# newgame.title = ...
+# newgame.ok = ...
+
+[mainmenu]
+title = Menu Główne
+
+[.items]
+newgame = Nowa gra
+scoreboard = Tabele wyników
+exit = Wyjście
+
+# mainmenu.newgame = ...
+# mainmenu.scoreboard = ...
+# mainmenu.exit = ...
+
 [menu]
 [.file]
 label = Plik

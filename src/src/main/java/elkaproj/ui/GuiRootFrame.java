@@ -1,5 +1,6 @@
 package elkaproj.ui;
 
+import elkaproj.DebugWriter;
 import elkaproj.config.language.Language;
 
 import javax.swing.*;
@@ -13,21 +14,28 @@ import java.awt.event.WindowEvent;
 /**
  * Main window class of the game. Holds all other components.
  */
-public class GameFrame extends JFrame implements ActionListener {
+public class GuiRootFrame extends JFrame implements ActionListener {
 
     public static final String COMMAND_EXIT = "PROZEkt_exit";
     public static final String COMMAND_PAUSE_RESUME = "PROZEkt_pause_resume";
     public static final String COMMAND_RESET = "PROZEkt_reset";
     public static final String COMMAND_SCOREBOARD = "PROZEkt_highscores";
     public static final String COMMAND_AUTHORS = "PROZEkt_authors";
+    public static final String COMMAND_CONFIRM_PLAYERNAME = "PROZEkt_confirm_playername";
+    public static final String COMMAND_NEW_GAME = "PROZEkt_new_game";
 
     private final Language language;
+
+    private final GuiPlayerNameView playerNameView;
+    private String playerName = null;
+
+    private final GuiMainMenuView mainMenuView;
 
     /**
      * Creates an initializes a new game window.
      * @param language UI language to use.
      */
-    public GameFrame(Language language) {
+    public GuiRootFrame(Language language) {
         super("@window.title");
 
         // set language
@@ -42,10 +50,12 @@ public class GameFrame extends JFrame implements ActionListener {
         this.setLocationRelativeTo(null); // center on screen
 
         // add UI components
-        this.setJMenuBar(new GameMenuBar(this));
-        this.add(new JLabel("@menu.file.items.exit", JLabel.CENTER));
+        this.setJMenuBar(new GuiMenuBar(this));
 
-        this.localize(new Component[] { this });
+        this.playerNameView = new GuiPlayerNameView(this);
+        this.add(this.playerNameView);
+
+        this.mainMenuView = new GuiMainMenuView(this);
     }
 
     private void localize(Component[] components) {
@@ -90,6 +100,12 @@ public class GameFrame extends JFrame implements ActionListener {
     }
 
     @Override
+    public void paint(Graphics graphics) {
+        this.localize(new Component[] { this });
+        super.paint(graphics);
+    }
+
+    @Override
     public void actionPerformed(ActionEvent actionEvent) {
         JOptionPane.showMessageDialog(this, actionEvent.getActionCommand());
 
@@ -97,7 +113,26 @@ public class GameFrame extends JFrame implements ActionListener {
             case COMMAND_EXIT:
                 this.dispose();
                 break;
+
+            case COMMAND_CONFIRM_PLAYERNAME:
+                this.playerName = this.playerNameView.getPlayerName();
+
+                if (this.playerName != null) {
+                    this.remove(this.playerNameView);
+                    DebugWriter.INSTANCE.logMessage("PLAYER", "New player name (%d): '%s'", this.playerName.length(), this.playerName);
+
+                    this.mainMenuView.setPlayerName(this.playerName);
+                    this.add(this.mainMenuView);
+                    this.forceUpdate();
+                }
+
+                break;
         }
+    }
+
+    private void forceUpdate() {
+        this.repaint();
+        this.revalidate();
     }
 
     private static class GameFrameWindowAdapter extends WindowAdapter {

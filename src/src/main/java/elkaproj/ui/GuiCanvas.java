@@ -6,7 +6,7 @@ import java.awt.image.BufferStrategy;
 /**
  * Root canvas, on which the actual game will be drawn.
  */
-public class GameCanvas extends Canvas {
+public class GuiCanvas extends Canvas {
 
     // ATTN: when drawing use this
     private BufferStrategy bs = null;

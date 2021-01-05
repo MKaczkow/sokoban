@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'idea'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
 group 'elkaproj'
@@ -15,6 +16,11 @@ repositories {
 }
 
 dependencies {
+    compile "javax.xml.bind:jaxb-api:2.3.0"
+    compile "com.sun.xml.bind:jaxb-core:2.3.0"
+    compile "com.sun.xml.bind:jaxb-impl:2.3.0"
+    compile "com.sun.activation:javax.activation:1.2.0"
+
     testCompile "junit:junit:4.12"
 }
 

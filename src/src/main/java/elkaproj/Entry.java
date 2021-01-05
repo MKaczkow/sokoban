@@ -9,7 +9,7 @@ import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.config.impl.FileConfigurationLoader;
 import elkaproj.config.language.Language;
 import elkaproj.config.language.LanguageLoader;
-import elkaproj.ui.GameFrame;
+import elkaproj.ui.GuiRootFrame;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -84,7 +84,7 @@ public class Entry {
         Language finalUiLang = uiLang;
         SwingUtilities.invokeLater(() -> {
             loadPlexFont();
-            GameFrame mainframe = new GameFrame(finalUiLang);
+            GuiRootFrame mainframe = new GuiRootFrame(finalUiLang);
             mainframe.setVisible(true);
         });
     }
