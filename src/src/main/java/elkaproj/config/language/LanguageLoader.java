@@ -5,6 +5,7 @@ import elkaproj.DebugWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -41,7 +42,7 @@ public class LanguageLoader {
 
         String languageFileName = String.format(LANGUAGE_FILE_PATTERN, code);
         try {
-            File languageFile = new File(LanguageLoader.class.getResource("/" + languageFileName).toURI());
+            InputStream languageFile = LanguageLoader.class.getResourceAsStream("/" + languageFileName);
             try (LanguageParser parser = new LanguageParser(languageFile)) {
                 return parser.parse();
             }

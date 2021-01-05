@@ -10,14 +10,13 @@ import elkaproj.config.impl.FileConfigurationLoader;
 import elkaproj.config.language.Language;
 import elkaproj.config.language.LanguageLoader;
 import elkaproj.ui.GameFrame;
-import sun.security.ssl.Debug;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 import java.util.Enumeration;
 
 public class Entry {
@@ -81,6 +80,7 @@ public class Entry {
         DebugWriter.INSTANCE.logMessage("INIT", "Loaded language: %s", uiLang.getName());
 
         // fire up the UI
+        // have to fix fonts first, since java can't into unicode
         loadPlexFont();
         GameFrame mainframe = new GameFrame(uiLang);
         mainframe.setVisible(true);
@@ -88,10 +88,10 @@ public class Entry {
 
     private static void loadPlexFont() {
         try {
-            File plexFR = new File(Entry.class.getResource("/fonts/IBMPlexSans-Regular.ttf").toURI()),
-                    plexFI = new File(Entry.class.getResource("/fonts/IBMPlexSans-Italic.ttf").toURI()),
-                    plexFB = new File(Entry.class.getResource("/fonts/IBMPlexSans-Bold.ttf").toURI()),
-                    plexFBI = new File(Entry.class.getResource("/fonts/IBMPlexSans-BoldItalic.ttf").toURI());
+            InputStream plexFR = Entry.class.getResourceAsStream("/fonts/IBMPlexSans-Regular.ttf"),
+                    plexFI = Entry.class.getResourceAsStream("/fonts/IBMPlexSans-Italic.ttf"),
+                    plexFB = Entry.class.getResourceAsStream("/fonts/IBMPlexSans-Bold.ttf"),
+                    plexFBI = Entry.class.getResourceAsStream("/fonts/IBMPlexSans-BoldItalic.ttf");
 
             Font plexR = Font.createFont(Font.TRUETYPE_FONT, plexFR),
                     plexI = Font.createFont(Font.TRUETYPE_FONT, plexFI),
@@ -112,13 +112,15 @@ public class Entry {
                     boolean bold = ((FontUIResource) v).isBold();
                     boolean italic = ((FontUIResource) v).isItalic();
 
-                    int fontstyle = Font.PLAIN;
-                    if (bold)
-                        fontstyle |= Font.BOLD;
-                    if (italic)
-                        fontstyle |= Font.ITALIC;
+                    Font f = plexR;
+                    if (bold && !italic)
+                        f = plexB;
+                    if (!bold && italic)
+                        f = plexI;
+                    else if (bold && italic)
+                        f = plexBI;
 
-                    UIManager.put(k, new FontUIResource(plexR.getFontName(), fontstyle, ((FontUIResource) v).getSize() - 1 /* Plex is large */));
+                    UIManager.put(k, new FontUIResource(f.deriveFont(14F)));
                 }
             }
         } catch (Exception ex) {

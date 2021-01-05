@@ -25,22 +25,11 @@ public class LanguageParser implements Closeable {
         sectionTarget = ltm.sectionTarget;
     }
 
-    public LanguageParser(File langFile) {
-        FileReader fr;
-        try {
-            fr = new FileReader(langFile);
-        } catch (Exception ignored) {
-            this.br = null;
-            return;
-        }
-
-        this.br = new BufferedReader(fr);
+    public LanguageParser(InputStream langFile) {
+        this.br = new BufferedReader(new InputStreamReader(langFile));
     }
 
     public Language parse() throws IOException, IllegalArgumentException, IllegalStateException {
-        if (this.br == null)
-            return null;
-
         Language lang;
         try {
             Constructor<Language> ctor = Language.class.getDeclaredConstructor();

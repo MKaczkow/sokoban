@@ -42,7 +42,7 @@ public class GameFrame extends JFrame implements ActionListener {
 
         // add UI components
         this.setJMenuBar(new GameMenuBar(this));
-        this.add(new JLabel("lmao"));
+        this.add(new JLabel("@menu.file.items.exit", JLabel.CENTER));
 
         this.localize(new Component[] { this });
     }
