@@ -25,7 +25,11 @@ public class CommandLineParserTests {
             "    Online server to pull configuration data from.\n" +
             "\n" +
             "  --online-port=value | -pvalue | -p value\n" +
-            "    Port of the configuration server.\n\n";
+            "    Port of the configuration server.\n" +
+            "\n" +
+            "  --language=value | -lvalue | -l value\n" +
+            "    UI language.\n" +
+            "\n";
 
     private static final String UTF8 = StandardCharsets.UTF_8.name();
 
@@ -148,6 +152,7 @@ public class CommandLineParserTests {
         Assert.assertFalse(opts.useOnline());
         Assert.assertEquals("test.example.com", opts.getOnlineServer());
         Assert.assertEquals(42069, opts.getOnlinePort());
+        Assert.assertEquals("pl-PL", opts.getLanguage());
     }
 
     private void assertCommon2(CommandLineOptions opts) {
@@ -157,5 +162,6 @@ public class CommandLineParserTests {
         Assert.assertTrue(opts.useOnline());
         Assert.assertEquals("localhost", opts.getOnlineServer());
         Assert.assertEquals(20420, opts.getOnlinePort());
+        Assert.assertEquals("pl-PL", opts.getLanguage());
     }
 }

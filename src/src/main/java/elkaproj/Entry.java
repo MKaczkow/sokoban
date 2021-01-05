@@ -7,10 +7,18 @@ import elkaproj.config.ILevelPackLoader;
 import elkaproj.config.commandline.CommandLineOptions;
 import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.config.impl.FileConfigurationLoader;
-import elkaproj.ui.ProzektFrame;
+import elkaproj.config.language.Language;
+import elkaproj.config.language.LanguageLoader;
+import elkaproj.ui.GameFrame;
+import sun.security.ssl.Debug;
 
+import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Enumeration;
 
 public class Entry {
     public static void main(String[] args) {
@@ -47,15 +55,74 @@ public class Entry {
                 levelPack = lvlloader.loadPack(config.getLevelPackId());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            DebugWriter.INSTANCE.logError("INIT", e, "Failed to load configuration.");
+            System.exit(1);
         }
 
         // inspect config
         inspector.inspect(config);
         inspector.inspect(levelPack);
 
+        // load languages
+        LanguageLoader languageLoader = new LanguageLoader();
+        Language uiLang = null;
+        try {
+            uiLang = languageLoader.loadLanguage(opts.getLanguage());
+        } catch (Exception ex) {
+            DebugWriter.INSTANCE.logError("INIT", ex, "Failed to load language '%s'.", opts.getLanguage());
+            System.exit(2);
+        }
+
+        if (uiLang == null) {
+            DebugWriter.INSTANCE.logError("INIT", null, "Failed to load language '%s'.", opts.getLanguage());
+            System.exit(2);
+        }
+
+        DebugWriter.INSTANCE.logMessage("INIT", "Loaded language: %s", uiLang.getName());
+
         // fire up the UI
-        ProzektFrame mainframe = new ProzektFrame();
+        loadPlexFont();
+        GameFrame mainframe = new GameFrame(uiLang);
         mainframe.setVisible(true);
+    }
+
+    private static void loadPlexFont() {
+        try {
+            File plexFR = new File(Entry.class.getResource("/fonts/IBMPlexSans-Regular.ttf").toURI()),
+                    plexFI = new File(Entry.class.getResource("/fonts/IBMPlexSans-Italic.ttf").toURI()),
+                    plexFB = new File(Entry.class.getResource("/fonts/IBMPlexSans-Bold.ttf").toURI()),
+                    plexFBI = new File(Entry.class.getResource("/fonts/IBMPlexSans-BoldItalic.ttf").toURI());
+
+            Font plexR = Font.createFont(Font.TRUETYPE_FONT, plexFR),
+                    plexI = Font.createFont(Font.TRUETYPE_FONT, plexFI),
+                    plexB = Font.createFont(Font.TRUETYPE_FONT, plexFB),
+                    plexBI = Font.createFont(Font.TRUETYPE_FONT, plexFBI);
+
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(plexR);
+            ge.registerFont(plexI);
+            ge.registerFont(plexB);
+            ge.registerFont(plexBI);
+
+            Enumeration<Object> uiSettings = UIManager.getDefaults().keys();
+            while (uiSettings.hasMoreElements()) {
+                Object k = uiSettings.nextElement();
+                Object v = UIManager.get(k);
+                if (v instanceof FontUIResource) {
+                    boolean bold = ((FontUIResource) v).isBold();
+                    boolean italic = ((FontUIResource) v).isItalic();
+
+                    int fontstyle = Font.PLAIN;
+                    if (bold)
+                        fontstyle |= Font.BOLD;
+                    if (italic)
+                        fontstyle |= Font.ITALIC;
+
+                    UIManager.put(k, new FontUIResource(plexR.getFontName(), fontstyle, ((FontUIResource) v).getSize() - 1 /* Plex is large */));
+                }
+            }
+        } catch (Exception ex) {
+            DebugWriter.INSTANCE.logError("FONT", ex, "Failed to load font.");
+        }
     }
 }

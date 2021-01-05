@@ -6,16 +6,30 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Parses command line arguments and produces objects of specified type T.
+ * @param <T> Type of objects this parser produces.
+ */
 public class CommandLineParser<T> {
 
     private final Argument[] args;
     private final Class<T> klass;
 
+    /**
+     * Creates a new command line parser for specified type.
+     * @param klass Type of objects this parser will produce.
+     */
     public CommandLineParser(Class<T> klass) {
         this.klass = klass;
         this.args = this.buildOptionList(this.klass);
     }
 
+    /**
+     * Parses supplied command line arguments, and returns a command line options object of type T.
+     * @param args Arguments to parse.
+     * @return Populated command line options object.
+     * @throws IllegalArgumentException Parsing failed due to invalid argument, invalid value, or other forms of invalid input.
+     */
     public T parse(String[] args) throws IllegalArgumentException {
         Map<String, Argument> fullNames = Arrays.stream(this.args)
                 .collect(Collectors.toMap(x -> x.fullName, x -> x));
@@ -160,6 +174,10 @@ public class CommandLineParser<T> {
         }
     }
 
+    /**
+     * Prints out help for the specified type, to the specified output.
+     * @param output Output to write help to. Typically {@link System#out}.
+     */
     public void printHelp(PrintStream output) {
         output.println("Available options:");
         output.println();

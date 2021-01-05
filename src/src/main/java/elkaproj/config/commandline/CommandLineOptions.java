@@ -20,6 +20,9 @@ public class CommandLineOptions {
     @CommandLineArgument(name = "online-port", shorthand = 'p', type = CommandLineArgumentType.NUMBER, defaultValue = "20420", helpText = "Port of the configuration server.")
     private int onlinePort;
 
+    @CommandLineArgument(name = "language", shorthand = 'l', type = CommandLineArgumentType.STRING, defaultValue = "pl-PL", helpText = "UI language.")
+    private String language;
+
     public CommandLineOptions() { }
 
     /**
@@ -60,5 +63,13 @@ public class CommandLineOptions {
      */
     public int getOnlinePort() {
         return this.onlinePort;
+    }
+
+    /**
+     * Gets the interface language code.
+     * @return Interface language code.
+     */
+    public String getLanguage() {
+        return this.language;
     }
 }

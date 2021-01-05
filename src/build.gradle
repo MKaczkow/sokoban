@@ -16,3 +16,11 @@ dependencies {
 }
 
 mainClassName = 'elkaproj.Entry'
+
+jar {
+    manifest {
+        attributes(
+                "Main-Class": mainClassName
+        )
+    }
+}

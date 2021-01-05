@@ -1,6 +1,11 @@
 package elkaproj;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Produces debug output when enabled.
@@ -11,6 +16,8 @@ public class DebugWriter {
      * Singleton instance of the writer.
      */
     public static final DebugWriter INSTANCE = new DebugWriter(System.out, System.err);
+
+    private static final String UTF8 = StandardCharsets.UTF_8.name();
 
     private static boolean isEnabled = false;
 
@@ -46,6 +53,27 @@ public class DebugWriter {
             return;
 
         this.error.printf("[%s] %s%n", tag, String.format(message, inserts));
+
+        if (throwable == null)
+            return;
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            try (PrintStream ps = new PrintStream(baos, true, UTF8)) {
+                // fix \r\n
+                Field f = ps.getClass().getDeclaredField("textOut");
+                f.setAccessible(true);
+                Object bw = f.get(ps);
+                f = bw.getClass().getDeclaredField("lineSeparator");
+                f.setAccessible(true);
+                f.set(bw, "\n");
+
+                throwable.printStackTrace(ps);
+
+                String exs = baos.toString(UTF8).trim().replace("\n", String.format("\n[%s] ", tag));
+                this.error.printf("[%s] %s%n", tag, exs);
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     /**

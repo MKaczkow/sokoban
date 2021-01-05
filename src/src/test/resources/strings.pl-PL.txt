@@ -1,0 +1,75 @@
+# Plik z danymi językowymi
+# ------------------------
+#
+# [nazwa]
+#   rozpoczyna nową sekcję
+#
+# [.nazwa]
+#   rozpoczyna nową podsekcję
+#
+# [..nazwa]
+#   rozpoczyna nową podsekcję w sekcji nadrzędnej
+#   zastosowanie większej ilości dwukropków niż 1 powoduje wyjście o n/2 sekcji wyżej (gdzie n to liczba dwukropków)
+#
+# nazwa = 123
+#   ustawia wartość pola nazwa w obecnej sekcji na 123
+#
+# Wartości nie mogą istnieć poza sekcjami i muszą być umieszczone przed definicjami jakiejkolwiek podsekcji
+# Linia zaczynająca się od znaku # jest traktowana jako komentarz i jest ignorowana
+# Linia zaczynająca się od znaku % jest dyrektywą
+# Dostępne dyrektywy to:
+# - name: nazwa języka
+# Dyrektywy muszą być umieszczone przed wszystkimi sekcjami
+#
+# Przykład
+# --------
+#
+# %name Numbers
+#
+# [root]
+# [.section]
+# value1 = 123
+# [.sub]
+# value2 = 456
+# [..sub2]
+# value3 = 789
+# [....section2]
+# value4 = 147
+# [root2]
+# value5 = 258
+#
+# Taki plik stworzy następujące wartości
+# root.section.value1 = 123
+# root.section.sub.value2 = 456
+# root.section.sub2.value3 = 789
+# root.section2.value4 = 147
+# root2.value5 = 258
+
+%name Polski
+
+[menu]
+[.file]
+label = Plik
+
+[.items]
+exit = Wyjście
+
+[....game]
+label = Gra
+
+[.items]
+pause = Pauza
+resume = Wznów
+reset = Resetuj poziom
+scoreboard = Tabele wyników
+authors = Twórcy
+
+# menu.file.label = ...
+# menu.file.items.exit = ...
+#
+# menu.game.label = ...
+# menu.game.items.pause = ...
+# menu.game.items.resume = ...
+# menu.game.items.reset = ...
+# menu.game.items.scoreboard = ...
+# menu.game.items.authors = ...
