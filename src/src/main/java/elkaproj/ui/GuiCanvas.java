@@ -1,23 +1,33 @@
 package elkaproj.ui;
 
+import elkaproj.DebugWriter;
 import elkaproj.config.Dimensions;
 import elkaproj.config.ILevel;
 import elkaproj.config.LevelTile;
-import elkaproj.game.*;
+import elkaproj.game.GameController;
+import elkaproj.game.GameMovementDirection;
+import elkaproj.game.IGameEventHandler;
+import elkaproj.game.IGameLifecycleHandler;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.io.IOException;
+import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Root canvas, on which the actual game will be drawn.
  */
-public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecycleHandler, KeyListener {
+public class GuiCanvas extends JPanel implements IGameEventHandler, IGameLifecycleHandler, KeyListener {
+
+    private static final int ANIMATION_FRAME_COUNT = 10;
+    private static final int ANIMATION_FRAME_TIME = 50;
+    private static final int ANIMATION_DURATION = ANIMATION_FRAME_COUNT * ANIMATION_FRAME_TIME;
 
     private final GameController gameController;
 
@@ -26,15 +36,18 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
     private boolean isRunning = false;
     private LevelTile[][] board = null;
     private boolean[][] crates = null;
-    private PlayerPosition playerPosition = null;
+    private Dimensions playerPosition = null;
+    private Dimensions.Delta playerDelta = null;
+    private Set<Dimensions.Delta> crateDeltas = null;
     private final ReentrantLock boardLock = new ReentrantLock();
 
-    private BufferStrategy bs = null;
     private final java.util.Timer timer;
 
     private long lastInputLockout = 0;
 
     private final Image tileFloor, tileWall, tileTarget, tileCrate, tilePlayer;
+
+    private BufferStrategy bs;
 
     /**
      * Initializes the game canvas.
@@ -48,7 +61,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         this.setFocusable(true);
 
         this.timer = new java.util.Timer();
-        this.timer.scheduleAtFixedRate(new BoardTimer(this), 15, 15); // ~66.6FPS
+        this.timer.scheduleAtFixedRate(new BoardTimer(this), ANIMATION_DURATION, ANIMATION_DURATION); // ~66.6FPS
 
         this.tileFloor = ImageIO.read(this.getClass().getResource("/tiles/floor.png"));
         this.tileWall = ImageIO.read(this.getClass().getResource("/tiles/wall.png"));
@@ -68,10 +81,49 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
     @Override
     public void addNotify() {
         super.addNotify();
-        this.updateBufferStrategy();
+        this.createBufferStrategy(3);
+        this.bs = this.getBufferStrategy();
     }
 
-    private void drawBoardLayer(Graphics g, LevelTile[][] board, Dimensions tileStart, int tileSize) {
+    private void redrawGame(Graphics2D g) {
+        try {
+            this.boardLock.lock();
+
+            long currentTime = System.currentTimeMillis();
+            if (currentTime + ANIMATION_DURATION >= this.lastInputLockout)
+                this.gameController.enableInput(true);
+
+            long n1 = System.nanoTime();
+
+            int tileSize = this.computeTileSize();
+            Dimensions tileStart = this.computeTileStart(tileSize);
+
+            float animationOffsetPercent = this.computeAnimationOffset(currentTime);
+            int animationOffset = (int)(animationOffsetPercent * tileSize);
+
+            Dimension size = this.getSize();
+
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, size.width, size.height);
+
+            this.drawBoardLayer(g, this.board, tileStart, tileSize, animationOffset);
+            this.drawCrateLayer(g,
+                    this.crates,
+                    this.playerDelta != null ? this.playerDelta : new Dimensions.Delta(this.playerPosition, this.playerPosition),
+                    tileStart,
+                    tileSize,
+                    animationOffset);
+
+            g.dispose();
+
+            long n2 = System.nanoTime();
+            DebugWriter.INSTANCE.logMessage("TIMER", "%d", n2 - n1);
+        } finally {
+            this.boardLock.unlock();
+        }
+    }
+
+    private void drawBoardLayer(Graphics2D g, LevelTile[][] board, Dimensions tileStart, int tileSize, int animationOffset) {
         int w = tileStart.getWidth();
         int h = tileStart.getHeight();
 
@@ -97,31 +149,39 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         }
     }
 
-    private void drawCrateLayer(Graphics g, boolean[][] crates, PlayerPosition playerPosition, Dimensions tileStart, int tileSize) {
+    private void drawCrateLayer(Graphics2D g, boolean[][] crates, Dimensions.Delta playerDelta, Dimensions tileStart, int tileSize, int animationOffset) {
         int w = tileStart.getWidth();
         int h = tileStart.getHeight();
 
         for (int y = 0; y < this.levelSize.getHeight(); y++) {
             for (int x = 0; x < this.levelSize.getWidth(); x++) {
+
                 if (crates[y][x]) {
                     g.drawImage(this.tileCrate, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
                 }
 
-                if (playerPosition.getX() == x && playerPosition.getY() == y) {
-                    g.drawImage(this.tilePlayer, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
+                if (animationOffset < ANIMATION_DURATION) {
+                    if (playerDelta.getFrom().getWidth() == x && playerDelta.getFrom().getHeight() == y)
+                        g.drawImage(this.tilePlayer, (w + x * tileSize) + animationOffset * playerDelta.getXChange(), (h + y * tileSize) + animationOffset * playerDelta.getYChange(), tileSize, tileSize, null);
+                } else {
+                    if (playerDelta.getTo().getWidth() == x && playerDelta.getTo().getHeight() == y)
+                        g.drawImage(this.tilePlayer, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
                 }
             }
         }
     }
 
     @Override
-    public void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, boolean[][] crates, PlayerPosition playerPosition) {
+    public void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, boolean[][] crates, Dimensions playerPosition, Set<Dimensions.Delta> deltas) {
         try {
+            this.boardLock.lock();
+
             this.board = board;
             this.crates = crates;
+            if (this.playerPosition != null)
+                this.playerDelta = new Dimensions.Delta(this.playerPosition, playerPosition);
             this.playerPosition = playerPosition;
-
-            this.boardLock.lock();
+            this.crateDeltas = deltas;
 
             this.levelSize = currentLevel.getSize();
 
@@ -146,6 +206,14 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         return dim;
     }
 
+    private float computeAnimationOffset(long currentTime) {
+        long tDelta = currentTime - this.lastInputLockout;
+        if (tDelta >= ANIMATION_DURATION)
+            return 1.0f;
+
+        return tDelta / (float)ANIMATION_DURATION;
+    }
+
     private Dimensions computeTileStart(int tileSize) {
         Dimension windowSize = this.getSize();
 
@@ -155,11 +223,6 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         return new Dimensions(w, h);
     }
 
-    private void updateBufferStrategy() {
-        this.createBufferStrategy(3);
-        this.bs = this.getBufferStrategy();
-    }
-
     @Override
     public void onGameStarted(ILevel currentLevel, int currentLives) {
     }
@@ -167,7 +230,6 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
     @Override
     public void onGameStopped(int totalScore, boolean completed) {
         this.isRunning = false;
-        this.bs = null;
     }
 
     @Override
@@ -224,39 +286,16 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
             if (!this.guiCanvas.gameController.isGameRunning() || !this.guiCanvas.isRunning)
                 return;
 
-            if (this.guiCanvas.bs == null)
+            BufferStrategy bs = this.guiCanvas.bs;
+            if (bs == null)
                 return;
 
-            BufferStrategy bs = this.guiCanvas.bs;
-            try {
-                this.guiCanvas.boardLock.lock();
-
-                if (System.currentTimeMillis() + 450 >= this.guiCanvas.lastInputLockout)
-                    this.guiCanvas.gameController.enableInput(true);
-
-                do {
-                    do {
-                        Graphics g = bs.getDrawGraphics();
-
-                        int tileSize = this.guiCanvas.computeTileSize();
-                        Dimensions tileStart = this.guiCanvas.computeTileStart(tileSize);
-
-                        Dimension size = this.guiCanvas.getSize();
-                        g.clearRect(0, 0, size.width, size.height);
-                        g.setColor(Color.BLACK);
-                        g.fillRect(0, 0, size.width, size.height);
-
-                        this.guiCanvas.drawBoardLayer(g, this.guiCanvas.board, tileStart, tileSize);
-                        this.guiCanvas.drawCrateLayer(g, this.guiCanvas.crates, this.guiCanvas.playerPosition, tileStart, tileSize);
-
-                        g.dispose();
-                    } while (bs.contentsRestored());
-
-                    bs.show();
-                } while (bs.contentsLost());
-            } finally {
-                this.guiCanvas.boardLock.unlock();
-            }
+            do {
+                Graphics2D g = (Graphics2D) bs.getDrawGraphics();
+                this.guiCanvas.redrawGame(g);
+                g.dispose();
+                bs.show();
+            } while (bs.contentsLost() || bs.contentsRestored());
         }
     }
 }

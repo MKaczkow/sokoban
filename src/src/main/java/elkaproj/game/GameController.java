@@ -3,6 +3,8 @@ package elkaproj.game;
 import elkaproj.config.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Implements game logic.
@@ -25,7 +27,7 @@ public class GameController {
     private LevelTile[][] board = null;
     private boolean[][] crates = null;
     private int numCrates = 0, numMatched = 0;
-    private PlayerPosition playerPosition = null;
+    private Dimensions playerPosition = null;
     private boolean acceptsInput = true;
 
     /**
@@ -165,7 +167,7 @@ public class GameController {
                 }
 
                 if (this.board[y][x] == LevelTile.PLAYER) {
-                    this.playerPosition = new PlayerPosition(x, y);
+                    this.playerPosition = new Dimensions(x, y);
                     this.board[y][x] = LevelTile.FLOOR;
                 } else if (this.board[y][x] == LevelTile.CRATE) {
                     this.board[y][x] = LevelTile.FLOOR;
@@ -174,7 +176,7 @@ public class GameController {
         }
 
         this.onScoreUpdated(this.currentScore, this.totalScore);
-        this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition);
+        this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, null);
 
         return true;
     }
@@ -229,7 +231,7 @@ public class GameController {
         if (this.currentLevelNumber < 0 || !this.acceptsInput)
             return;
 
-        PlayerPosition pos = this.playerPosition;
+        Dimensions pos = this.playerPosition;
         int xm = 0, ym = 0;
         switch (direction) {
             case RIGHT:
@@ -249,11 +251,11 @@ public class GameController {
                 break;
         }
 
-        PlayerPosition newPos = new PlayerPosition(playerPosition.getX() + xm, playerPosition.getY() + ym);
-        int nx = newPos.getX(), ny = newPos.getY();
+        Dimensions newPos = new Dimensions(playerPosition.getWidth() + xm, playerPosition.getHeight() + ym);
+        int nx = newPos.getWidth(), ny = newPos.getHeight();
 
         // check if out of bounds
-        if (newPos.getX() < 0 || newPos.getX() > this.currentLevel.getSize().getWidth() || newPos.getY() < 0 || newPos.getY() > this.currentLevel.getSize().getHeight())
+        if (newPos.getWidth() < 0 || newPos.getWidth() > this.currentLevel.getSize().getWidth() || newPos.getHeight() < 0 || newPos.getHeight() > this.currentLevel.getSize().getHeight())
             return;
 
         // check if wall
@@ -261,6 +263,7 @@ public class GameController {
             return;
 
         // check if crate
+        HashSet<Dimensions.Delta> deltas = null;
         if (this.crates[ny][nx]) {
             // check if stacked crate or stacked wall
             if (this.crates[ny + ym][nx + xm] || this.board[ny + ym][nx + xm] == LevelTile.WALL)
@@ -268,6 +271,9 @@ public class GameController {
 
             this.crates[ny + ym][nx + xm] = true;
             this.crates[ny][nx] = false;
+
+            deltas = new HashSet<>(1);
+            deltas.add(new Dimensions.Delta(new Dimensions(nx, ny), new Dimensions(nx + xm, ny + ym)));
 
             if (this.board[ny + ym][nx + xm] == LevelTile.TARGET_SPOT && this.board[ny][nx] != LevelTile.TARGET_SPOT)
                 this.numMatched++;
@@ -279,7 +285,7 @@ public class GameController {
         this.currentScore++;
 
         this.onScoreUpdated(this.currentScore, this.totalScore);
-        this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition);
+        this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, deltas);
 
         if (this.numMatched == this.numCrates) {
             if (!this.nextLevel())
@@ -318,9 +324,9 @@ public class GameController {
         }
     }
 
-    private void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, boolean[][] crates, PlayerPosition playerPosition) {
+    private void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, boolean[][] crates, Dimensions playerPosition, Set<Dimensions.Delta> deltas) {
         for (IGameEventHandler handler : this.gameEventHandlers) {
-            handler.onBoardUpdated(currentLevel, board, crates, playerPosition);
+            handler.onBoardUpdated(currentLevel, board, crates, playerPosition, deltas);
         }
     }
 }
