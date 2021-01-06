@@ -26,6 +26,7 @@ public class GameController {
     private boolean[][] crates = null;
     private int numCrates = 0, numMatched = 0;
     private PlayerPosition playerPosition = null;
+    private boolean acceptsInput = true;
 
     /**
      * Initializes the controller.
@@ -144,6 +145,7 @@ public class GameController {
         this.currentScore = 0;
         this.numCrates = 0;
         this.numMatched = 0;
+        this.acceptsInput = true;
 
         Dimensions levelSize = this.currentLevel.getSize();
         this.board = new LevelTile[levelSize.getHeight()][];
@@ -212,11 +214,19 @@ public class GameController {
     }
 
     /**
+     * Sets whether player inputs are accepted.
+     * @param enable Whether inputs are to be accepted.
+     */
+    public void enableInput(boolean enable) {
+        this.acceptsInput = enable;
+    }
+
+    /**
      * Move the player in a direction.
      * @param direction Direction to move the player in.
      */
     public void move(GameMovementDirection direction) {
-        if (this.currentLevelNumber < 0)
+        if (this.currentLevelNumber < 0 || !this.acceptsInput)
             return;
 
         PlayerPosition pos = this.playerPosition;
