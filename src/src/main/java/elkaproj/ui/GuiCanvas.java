@@ -10,7 +10,6 @@ import elkaproj.game.IGameEventHandler;
 import elkaproj.game.IGameLifecycleHandler;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -23,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Root canvas, on which the actual game will be drawn.
  */
-public class GuiCanvas extends JPanel implements IGameEventHandler, IGameLifecycleHandler, KeyListener {
+public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecycleHandler, KeyListener {
 
     private static final int ANIMATION_FRAME_COUNT = 10;
     private static final int ANIMATION_FRAME_TIME = 50;
@@ -34,6 +33,7 @@ public class GuiCanvas extends JPanel implements IGameEventHandler, IGameLifecyc
     private Dimensions levelSize = null;
 
     private boolean isRunning = false;
+    private boolean boardInvalid = true;
     private LevelTile[][] board = null;
     private boolean[][] crates = null;
     private Dimensions playerPosition = null;
@@ -103,18 +103,26 @@ public class GuiCanvas extends JPanel implements IGameEventHandler, IGameLifecyc
 
             Dimension size = this.getSize();
 
-            g.setColor(Color.BLACK);
-            g.fillRect(0, 0, size.width, size.height);
+            if (this.boardInvalid) {
+                g.setColor(Color.BLACK);
+                g.fillRect(0, 0, size.width, size.height);
 
-            this.drawBoardLayer(g, this.board, tileStart, tileSize, animationOffset);
-            this.drawCrateLayer(g,
-                    this.crates,
-                    this.playerDelta != null ? this.playerDelta : new Dimensions.Delta(this.playerPosition, this.playerPosition),
-                    tileStart,
-                    tileSize,
-                    animationOffset);
-
-            g.dispose();
+                this.drawBoardLayer(g, this.board, tileStart, tileSize, animationOffset);
+                this.drawCrateLayer(g,
+                        this.crates,
+                        this.playerDelta != null ? this.playerDelta : new Dimensions.Delta(this.playerPosition, this.playerPosition),
+                        tileStart,
+                        tileSize,
+                        animationOffset);
+            } else {
+                this.drawDeltas(g,
+                        this.board,
+                        this.playerDelta != null ? this.playerDelta : new Dimensions.Delta(this.playerPosition, this.playerPosition),
+                        this.crateDeltas,
+                        tileStart,
+                        tileSize,
+                        animationOffset);
+            }
 
             long n2 = System.nanoTime();
             DebugWriter.INSTANCE.logMessage("TIMER", "%d", n2 - n1);
@@ -129,22 +137,7 @@ public class GuiCanvas extends JPanel implements IGameEventHandler, IGameLifecyc
 
         for (int y = 0; y < this.levelSize.getHeight(); y++) {
             for (int x = 0; x < this.levelSize.getWidth(); x++) {
-                Image image = null;
-                switch (board[y][x]) {
-                    case WALL:
-                        image = this.tileWall;
-                        break;
-
-                    case FLOOR:
-                        image = this.tileFloor;
-                        break;
-
-                    case TARGET_SPOT:
-                        image = this.tileTarget;
-                        break;
-                }
-
-                g.drawImage(image, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
+                this.drawBoardTileAt(g, x, y, w, h, board[y][x], tileSize);
             }
         }
     }
@@ -156,19 +149,58 @@ public class GuiCanvas extends JPanel implements IGameEventHandler, IGameLifecyc
         for (int y = 0; y < this.levelSize.getHeight(); y++) {
             for (int x = 0; x < this.levelSize.getWidth(); x++) {
 
-                if (crates[y][x]) {
+                if (crates[y][x])
                     g.drawImage(this.tileCrate, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
-                }
 
-                if (animationOffset < ANIMATION_DURATION) {
-                    if (playerDelta.getFrom().getWidth() == x && playerDelta.getFrom().getHeight() == y)
-                        g.drawImage(this.tilePlayer, (w + x * tileSize) + animationOffset * playerDelta.getXChange(), (h + y * tileSize) + animationOffset * playerDelta.getYChange(), tileSize, tileSize, null);
-                } else {
-                    if (playerDelta.getTo().getWidth() == x && playerDelta.getTo().getHeight() == y)
-                        g.drawImage(this.tilePlayer, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
-                }
+                if (playerDelta.getTo().getWidth() == x && playerDelta.getTo().getHeight() == y)
+                    g.drawImage(this.tilePlayer, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
             }
         }
+    }
+
+    private void drawDeltas(Graphics2D g, LevelTile[][] board, Dimensions.Delta playerDelta, Set<Dimensions.Delta> crateDeltas, Dimensions tileStart, int tileSize, int animationOffset) {
+        int w = tileStart.getWidth();
+        int h = tileStart.getHeight();
+
+        Dimensions pFrom = playerDelta.getFrom(),
+                pTo = playerDelta.getTo();
+
+        if (animationOffset < ANIMATION_DURATION) {
+            int x1 = pFrom.getWidth(), y1 = pFrom.getHeight();
+            int x2 = pTo.getWidth(), y2 = pTo.getHeight();
+            this.drawTilesUnderMovingObject(g, x1, y1, x2, y2, w, h, this.tilePlayer, board, playerDelta, tileSize, animationOffset);
+        } else {
+            int x = pFrom.getWidth(), y = pFrom.getHeight();
+            this.drawBoardTileAt(g, x, y, w, h, board[y][x], tileSize);
+
+            g.drawImage(this.tilePlayer, w + pTo.getWidth() * tileSize, h + pTo.getHeight() * tileSize, tileSize, tileSize, null);
+        }
+    }
+
+    private void drawTilesUnderMovingObject(Graphics2D g, int x1, int y1, int x2, int y2, int w, int h, Image tileImage, LevelTile[][] board, Dimensions.Delta delta, int tileSize, int animationOffset) {
+        this.drawBoardTileAt(g, x1, y1, w, h, board[y1][x1], tileSize);
+        this.drawBoardTileAt(g, x2, y2, w, h, board[y2][x2], tileSize);
+
+        g.drawImage(tileImage, (w + x1 * tileSize) + animationOffset * delta.getXChange(), (h + y1 * tileSize) + animationOffset * delta.getYChange(), tileSize, tileSize, null);
+    }
+
+    private void drawBoardTileAt(Graphics2D g, int x, int y, int w, int h, LevelTile tile, int tileSize) {
+        Image image = null;
+        switch (tile) {
+            case WALL:
+                image = this.tileWall;
+                break;
+
+            case FLOOR:
+                image = this.tileFloor;
+                break;
+
+            case TARGET_SPOT:
+                image = this.tileTarget;
+                break;
+        }
+
+        g.drawImage(image, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
     }
 
     @Override
@@ -225,15 +257,18 @@ public class GuiCanvas extends JPanel implements IGameEventHandler, IGameLifecyc
 
     @Override
     public void onGameStarted(ILevel currentLevel, int currentLives) {
+        this.boardInvalid = true;
     }
 
     @Override
     public void onGameStopped(int totalScore, boolean completed) {
         this.isRunning = false;
+        this.boardInvalid = true;
     }
 
     @Override
     public void onNextLevel(ILevel currentLevel, int totalScore) {
+        this.boardInvalid = true;
     }
 
     @Override
@@ -296,6 +331,8 @@ public class GuiCanvas extends JPanel implements IGameEventHandler, IGameLifecyc
                 g.dispose();
                 bs.show();
             } while (bs.contentsLost() || bs.contentsRestored());
+
+            this.guiCanvas.boardInvalid = false;
         }
     }
 }
