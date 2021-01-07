@@ -1,33 +1,37 @@
 package elkaproj.config.impl;
 
+import elkaproj.Entry;
 import elkaproj.config.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * Loads levels from XML file data.
+ * Loads levels from remote XML data over HTTP.
  */
-class FileLevelPackLoader implements ILevelPackLoader {
+public class HttpLevelPackLoader implements ILevelPackLoader {
 
-    private final File baseDir;
+    private final URL endpointBase;
 
     /**
-     * Creates a new load from given directory.
-     * @param baseDir Directory to load from.
+     * Creates a new load from URL endpoint.
+     * @param endpointBase URL endpoint to load configuration from.
      */
-    public FileLevelPackLoader(File baseDir) {
-        this.baseDir = baseDir;
+    public HttpLevelPackLoader(URL endpointBase) {
+        this.endpointBase = endpointBase;
     }
 
     /**
@@ -38,43 +42,50 @@ class FileLevelPackLoader implements ILevelPackLoader {
      */
     @Override
     public ILevelPack loadPack(String id) throws IOException {
-        File pack = new File(this.baseDir, id);
-        File meta = new File(pack, "meta.xml");
-        if (!pack.exists() || !pack.isDirectory() || !meta.exists()) {
-            throw new IOException("Specified pack does not exist.");
-        }
+        URL pack = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), id));
+        URL meta = new URL(pack, this.appendPath(pack.getPath(), "meta.xml"));
 
-        XmlFileLevelPackMeta xlpm;
+        XmlHttpLevelPackMeta xlpm;
         try {
-            JAXBContext jaxbctx = JAXBContext.newInstance(XmlFileLevelPackMeta.class);
+            JAXBContext jaxbctx = JAXBContext.newInstance(XmlHttpLevelPackMeta.class);
             Unmarshaller jaxb = jaxbctx.createUnmarshaller();
-            xlpm = (XmlFileLevelPackMeta) jaxb.unmarshal(meta);
-        } catch (JAXBException e) {
-            throw new IOException(e);
-        }
 
-        File[] leveldefs = pack.listFiles(x -> !x.getName().equals("meta.xml") && x.getName().endsWith(".xml"));
-        List<ILevel> levels = new ArrayList<>();
-        try {
-            JAXBContext jaxbctx = JAXBContext.newInstance(XmlFileLevelMeta.class);
-            Unmarshaller jaxb = jaxbctx.createUnmarshaller();
-            assert leveldefs != null;
-            for (File leveldef : leveldefs) {
-                levels.add(this.loadLevel((XmlFileLevelMeta) jaxb.unmarshal(leveldef), pack));
+            URLConnection con = meta.openConnection();
+            con.setRequestProperty("User-Agent", Entry.USER_AGENT);
+            try (InputStream is = con.getInputStream()) {
+                xlpm = (XmlHttpLevelPackMeta) jaxb.unmarshal(is);
             }
         } catch (JAXBException e) {
             throw new IOException(e);
         }
 
-        return new XmlFileLevelPack(xlpm, levels);
+        List<ILevel> levels = new ArrayList<>();
+        try {
+            for (XmlHttpLevelMeta leveldef : xlpm.levels) {
+                levels.add(this.loadLevel(leveldef, pack));
+            }
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+
+        return new XmlHttpLevelPack(xlpm, levels);
     }
 
-    private ILevel loadLevel(XmlFileLevelMeta xdef, File pack) throws IOException {
-        File lvldata = new File(pack, xdef.definitionFile);
-        List<String> lines = Files.readAllLines(lvldata.toPath())
-                .stream()
-                .filter(x -> x.length() > 0)
-                .collect(Collectors.toList());
+    private ILevel loadLevel(XmlHttpLevelMeta xdef, URL pack) throws IOException {
+        URL lvldata = new URL(pack, this.appendPath(pack.getPath(), xdef.definitionFile));
+
+        ArrayList<String> lines = new ArrayList<>();
+
+        URLConnection con = lvldata.openConnection();
+        con.setRequestProperty("User-Agent", Entry.USER_AGENT);
+        try (BufferedReader lvlin = new BufferedReader(
+                new InputStreamReader(
+                        con.getInputStream(), StandardCharsets.UTF_8.name()))) {
+
+            String inputLine;
+            while ((inputLine = lvlin.readLine()) != null && !inputLine.equals(""))
+                lines.add(inputLine);
+        }
 
         int width = lines.stream()
                 .mapToInt(String::length)
@@ -92,7 +103,7 @@ class FileLevelPackLoader implements ILevelPackLoader {
             }
         }
 
-        return new XmlFileLevel(xdef, new Dimensions(width, height), tiles);
+        return new XmlHttpLevel(xdef, new Dimensions(width, height), tiles);
     }
 
     /**
@@ -100,16 +111,27 @@ class FileLevelPackLoader implements ILevelPackLoader {
      * @throws IOException Closing failed.
      */
     @Override
-    public void close() throws IOException { }
+    public void close() throws IOException {
+    }
 
-    private static class XmlFileLevel implements ILevel {
+    private String appendPath(String base, String appendix) {
+        if (appendix.startsWith("/"))
+            appendix = appendix.substring(1);
+
+        if (base.endsWith("/"))
+            return base + appendix;
+        else
+            return base + "/" + appendix;
+    }
+
+    private static class XmlHttpLevel implements ILevel {
 
         private final int ordinal, bonusTimeThreshold, penaltyTimeThreshold, failTimeThreshold;
         private final String name;
         private final Dimensions dimensions;
         private final LevelTile[][] tiles;
 
-        public XmlFileLevel(XmlFileLevelMeta xdef, Dimensions dims, LevelTile[][] tiles) {
+        public XmlHttpLevel(XmlHttpLevelMeta xdef, Dimensions dims, LevelTile[][] tiles) {
             this.ordinal = xdef.ordinal;
             this.name = xdef.name;
             this.bonusTimeThreshold = xdef.bonusTime;
@@ -162,12 +184,12 @@ class FileLevelPackLoader implements ILevelPackLoader {
         }
     }
 
-    private static class XmlFileLevelPack implements ILevelPack {
+    private static class XmlHttpLevelPack implements ILevelPack {
 
         private final String name, id;
         private final List<ILevel> levels;
 
-        public XmlFileLevelPack(XmlFileLevelPackMeta xdef, List<ILevel> levels) {
+        public XmlHttpLevelPack(XmlHttpLevelPackMeta xdef, List<ILevel> levels) {
             this.name = xdef.name;
             this.id = xdef.id;
             this.levels = levels;
@@ -201,18 +223,21 @@ class FileLevelPackLoader implements ILevelPackLoader {
 
     @XmlRootElement(name="level-pack")
     @XmlAccessorType(XmlAccessType.FIELD)
-    private static class XmlFileLevelPackMeta {
+    private static class XmlHttpLevelPackMeta {
 
         @XmlAttribute(name="id")
         public String id;
 
         @XmlAttribute(name="name")
         public String name;
+
+        @XmlElement(name="level")
+        public XmlHttpLevelMeta[] levels;
     }
 
     @XmlRootElement(name="level")
     @XmlAccessorType(XmlAccessType.FIELD)
-    private static class XmlFileLevelMeta {
+    private static class XmlHttpLevelMeta {
 
         @XmlElement(name="ordinal")
         public int ordinal;

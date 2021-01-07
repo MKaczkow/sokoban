@@ -1,6 +1,7 @@
 package elkaproj.config.impl;
 
 import elkaproj.DebugWriter;
+import elkaproj.Entry;
 import elkaproj.config.GamePowerup;
 import elkaproj.config.IConfiguration;
 import elkaproj.config.IConfigurationLoader;
@@ -13,12 +14,16 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.EnumSet;
 import java.util.List;
 
 /**
- * Loads configuration from file streams. The configuration uses XML format. The configuration is case-sensitive, and
+ * Loads configuration from HTTP endpoints. The configuration uses XML format. The configuration is case-sensitive, and
  * needs to have following keys:
  *
  * <ul>
@@ -33,19 +38,16 @@ import java.util.List;
  * @see IConfigurationLoader
  * @see IConfiguration
  */
-public class FileConfigurationLoader implements IConfigurationLoader, Closeable {
+public class HttpConfigurationLoader implements IConfigurationLoader {
 
-    private final FileInputStream inputStream;
-    private final File file;
+    private final URL endpointBase;
 
     /**
-     * Creates a new configuration loader from given file stream.
-     * @param file File to read configuration from.
-     * @throws FileNotFoundException Configuration file was not found.
+     * Creates a new configuration loader from given URL endpoint.
+     * @param endpointBase URL endpoint to load configuration from.
      */
-    public FileConfigurationLoader(File file) throws FileNotFoundException {
-        this.file = file;
-        this.inputStream = new FileInputStream(file);
+    public HttpConfigurationLoader(URL endpointBase) {
+        this.endpointBase = endpointBase;
     }
 
     /**
@@ -56,32 +58,53 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
     @Override
     public IConfiguration load() {
         try {
-            JAXBContext jaxbctx = JAXBContext.newInstance(XmlFileConfiguration.class);
+            URL url = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "config.xml"));
+
+            JAXBContext jaxbctx = JAXBContext.newInstance(XmlHttpConfiguration.class);
             Unmarshaller jaxb = jaxbctx.createUnmarshaller();
-            return (IConfiguration) jaxb.unmarshal(this.inputStream);
-        } catch (JAXBException e) {
-            DebugWriter.INSTANCE.logError("LDR-FILE", e, "Error while loading file.");
+
+            URLConnection con = url.openConnection();
+            con.setRequestProperty("User-Agent", Entry.USER_AGENT);
+            try (InputStream is = con.getInputStream()) {
+                return (IConfiguration) jaxb.unmarshal(is);
+            }
+        } catch (Exception ex) {
+            DebugWriter.INSTANCE.logError("LDR-HTTP", ex, "Error while loading file.");
             return null;
         }
     }
 
     /**
-     * Gets the file-based level pack loader.
-     * @return File level pack loader.
+     * Gets the HTTP-based level pack loader.
+     * @return HTTP level pack loader.
      */
     @Override
     public ILevelPackLoader getLevelPackLoader() {
-        File maps = new File(this.file.getParent(), "maps");
-        return new FileLevelPackLoader(maps);
+        try {
+            URL url = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "maps"));
+            return new HttpLevelPackLoader(url);
+        } catch (MalformedURLException ex) {
+            DebugWriter.INSTANCE.logError("HTTP-LDR", ex, "Failed to construct HTTP level loader.");
+            return null;
+        }
     }
 
     /**
-     * Closes this reader and the underlying stream.
-     * @throws IOException An exception occurred while closing the underlying stream.
+     * Closes this reader.
+     * @throws IOException An exception occurred while closing the reader.
      */
     @Override
     public void close() throws IOException {
-        this.inputStream.close();
+    }
+
+    private String appendPath(String base, String appendix) {
+        if (appendix.startsWith("/"))
+            appendix = appendix.substring(1);
+
+        if (base.endsWith("/"))
+            return base + appendix;
+        else
+            return base + "/" + appendix;
     }
 
     /**
@@ -90,7 +113,7 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
      */
     @XmlRootElement(name="configuration")
     @XmlAccessorType(XmlAccessType.FIELD)
-    private static class XmlFileConfiguration implements IConfiguration {
+    private static class XmlHttpConfiguration implements IConfiguration {
 
         @XmlElement(name="level-pack")
         private String levelPackId;
@@ -115,7 +138,7 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
 
         private transient EnumSet<GamePowerup> activePowerupsES;
 
-        private XmlFileConfiguration() { }
+        private XmlHttpConfiguration() { }
 
         @Override
         public String getLevelPackId() {

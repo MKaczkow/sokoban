@@ -14,11 +14,8 @@ public class CommandLineOptions {
     @CommandLineArgument(name = "online", shorthand = 'o', type = CommandLineArgumentType.FLAG, helpText = "Enables online mode. This causes the game to pull configuration data from the specified server.")
     private boolean online;
 
-    @CommandLineArgument(name = "online-hostname", shorthand = 's', type = CommandLineArgumentType.STRING, defaultValue = "localhost", helpText = "Online server to pull configuration data from.")
-    private String onlineServer;
-
-    @CommandLineArgument(name = "online-port", shorthand = 'p', type = CommandLineArgumentType.NUMBER, defaultValue = "20420", helpText = "Port of the configuration server.")
-    private int onlinePort;
+    @CommandLineArgument(name = "online-endpoint", shorthand = 's', type = CommandLineArgumentType.STRING, defaultValue = "http://localhost/proze", helpText = "HTTP endpoint to pull configuration data from.")
+    private String onlineEndpoint;
 
     @CommandLineArgument(name = "language", shorthand = 'l', type = CommandLineArgumentType.STRING, defaultValue = "pl-PL", helpText = "UI language.")
     private String language;
@@ -50,19 +47,11 @@ public class CommandLineOptions {
     }
 
     /**
-     * Gets the hostname of the online configuration server.
-     * @return Hostname of online configuration server.
+     * Gets the address of the online configuration endpoint.
+     * @return Address of online configuration endpoint.
      */
-    public String getOnlineServer() {
-        return this.onlineServer;
-    }
-
-    /**
-     * Gets the port of the online configuration server.
-     * @return Port of online configuration server.
-     */
-    public int getOnlinePort() {
-        return this.onlinePort;
+    public String getOnlineEndpoint() {
+        return this.onlineEndpoint;
     }
 
     /**

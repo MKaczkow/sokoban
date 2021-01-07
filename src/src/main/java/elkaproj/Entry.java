@@ -7,6 +7,7 @@ import elkaproj.config.ILevelPackLoader;
 import elkaproj.config.commandline.CommandLineOptions;
 import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.config.impl.FileConfigurationLoader;
+import elkaproj.config.impl.HttpConfigurationLoader;
 import elkaproj.config.language.Language;
 import elkaproj.config.language.LanguageLoader;
 import elkaproj.ui.GuiRootFrame;
@@ -17,9 +18,19 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Enumeration;
 
+/**
+ * Program entrypoint.
+ */
 public class Entry {
+
+    /**
+     * User agent for HTTP requests.
+     */
+    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66";
+
     public static void main(String[] args) {
         // parse commandline options
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
@@ -40,22 +51,40 @@ public class Entry {
         }
 
         // load configuration
-        // TODO: networked load if applicable
-        // TODO: delegate to UI?
-        File f = new File("config", "config.xml");
         IConfiguration config = null;
         ILevelPack levelPack = null;
-        try (FileConfigurationLoader loader = new FileConfigurationLoader(f)) {
-            config = loader.load();
+        if (!opts.useOnline()) {
+            System.setProperty("http.agent", USER_AGENT);
 
-            DebugWriter.INSTANCE.logMessage("INIT", "Configuration valid? %b", ConfigurationValidator.validateConfiguration(config));
+            File f = new File("config", "config.xml");
+            try (FileConfigurationLoader loader = new FileConfigurationLoader(f)) {
+                config = loader.load();
 
-            try (ILevelPackLoader lvlloader = loader.getLevelPackLoader()) {
-                levelPack = lvlloader.loadPack(config.getLevelPackId());
+                DebugWriter.INSTANCE.logMessage("INIT", "Configuration valid? %b", ConfigurationValidator.validateConfiguration(config));
+
+                try (ILevelPackLoader lvlloader = loader.getLevelPackLoader()) {
+                    levelPack = lvlloader.loadPack(config.getLevelPackId());
+                }
+            } catch (IOException e) {
+                DebugWriter.INSTANCE.logError("INIT", e, "Failed to load configuration.");
+                System.exit(1);
             }
-        } catch (IOException e) {
-            DebugWriter.INSTANCE.logError("INIT", e, "Failed to load configuration.");
-            System.exit(1);
+        } else {
+            try {
+                URL url = new URL(opts.getOnlineEndpoint());
+                try (HttpConfigurationLoader loader = new HttpConfigurationLoader(url)) {
+                    config = loader.load();
+
+                    DebugWriter.INSTANCE.logMessage("INIT", "Configuration valid? %b", ConfigurationValidator.validateConfiguration(config));
+
+                    try (ILevelPackLoader lvlloader = loader.getLevelPackLoader()) {
+                        levelPack = lvlloader.loadPack(config.getLevelPackId());
+                    }
+                }
+            } catch (Exception ex) {
+                DebugWriter.INSTANCE.logError("INIT", ex, "Failed to load configuration.");
+                System.exit(1);
+            }
         }
 
         // inspect config
