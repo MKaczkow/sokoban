@@ -79,13 +79,13 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
         this.setLocationRelativeTo(null); // center on screen
 
         // add UI components
-        this.setJMenuBar(new GuiMenuBar(this));
+        this.setJMenuBar(new GuiMenuBar(this, this.gameController));
 
         this.playerNameView = new GuiPlayerNameView(this);
         this.setActiveView(this.playerNameView);
 
         this.mainMenuView = new GuiMainMenuView(this);
-        this.gameView = new GuiCanvas(this.gameController);
+        this.gameView = new GuiCanvas(this.gameController, this.language.getValue("misc.paused"));
 
         this.statusPanel = new GuiStatusPanel(this.gameController, this.getSize(), this.language);
         this.add(this.statusPanel, BorderLayout.SOUTH);

@@ -1,6 +1,7 @@
 package elkaproj.ui;
 
 import elkaproj.DebugWriter;
+import elkaproj.Entry;
 import elkaproj.config.Dimensions;
 import elkaproj.config.ILevel;
 import elkaproj.config.LevelTile;
@@ -16,7 +17,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -49,13 +52,15 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
     private final Image tileFloor, tileWall, tileTarget, tileCrate, tilePlayer;
 
     private BufferStrategy bs;
+    private final String pauseString;
 
     /**
      * Initializes the game canvas.
      * @param gameController Controller, which handles the gameplay component itself.
      * @throws IOException Loading tile graphics failed.
      */
-    public GuiCanvas(GameController gameController) throws IOException {
+    public GuiCanvas(GameController gameController, String pauseString) throws IOException {
+        this.pauseString = pauseString;
         this.gameController = gameController;
         this.gameController.addGameEventHandler(this);
         this.addKeyListener(this);
@@ -115,8 +120,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
             this.boardLock.lock();
 
             long currentTime = System.currentTimeMillis();
-            if (currentTime + this.animationDuration >= this.lastInputLockout)
-                this.gameController.enableInput(true);
+            this.gameController.enableInput(!this.gameController.isPaused() && currentTime + this.animationDuration >= this.lastInputLockout);
 
             int tileSize = this.computeTileSize();
             Dimensions tileStart = this.computeTileStart(tileSize);
@@ -128,6 +132,22 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, size.width, size.height);
+
+            if (this.gameController.isPaused()) {
+                Font f = Entry.IBMPlexBoldItalic.deriveFont(36f);
+                FontMetrics fm = g.getFontMetrics(f);
+
+                int h = fm.getHeight();
+                int w = fm.stringWidth(this.pauseString);
+
+                g.setColor(new Color(33, 33, 33));
+                g.fillRect(16, 16, w + 24, h + 24);
+
+                g.setColor(Color.WHITE);
+                g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+                g.setFont(f);
+                g.drawString(this.pauseString, 28, 28 + h - fm.getDescent());
+            }
 
             this.drawBoardLayer(g, this.board, tileStart, tileSize);
             this.drawCrateLayer(g,

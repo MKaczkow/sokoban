@@ -1,6 +1,8 @@
 package elkaproj.game;
 
+import elkaproj.DebugWriter;
 import elkaproj.config.*;
+import sun.security.ssl.Debug;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,7 +32,6 @@ public class GameController {
     private int numCrates = 0, numMatched = 0;
     private Dimensions playerPosition = null;
     private boolean acceptsInput = true;
-    private boolean isPaused = false;
 
     /**
      * Initializes the controller.
@@ -96,6 +97,14 @@ public class GameController {
      */
     public boolean isGameRunning() {
         return this.currentLevelNumber >= 0;
+    }
+
+    /**
+     * Gets whether the game is paused.
+     * @return Whether the game is paused.
+     */
+    public boolean isPaused() {
+        return this.gamePaused;
     }
 
     /**
@@ -234,6 +243,7 @@ public class GameController {
         this.gamePaused = !this.gamePaused;
         this.enableInput(!this.gamePaused);
 
+        DebugWriter.INSTANCE.logMessage("GAME", "Pause status: %b", this.gamePaused);
         if (this.gamePaused)
             this.onGamePaused();
         else
@@ -248,10 +258,8 @@ public class GameController {
         if (currentLives >= 1) {
             this.currentLives--;
             this.onLivesUpdated(this.getCurrentLives(), this.getMaxLives());
-            HashSet<Dimensions.Delta> deltas = null;
 
-            this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, deltas);
-
+            this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, null);
         }
         else { stopGame(false); }
     }
@@ -292,7 +300,7 @@ public class GameController {
                 break;
         }
 
-        Dimensions newPos = new Dimensions(playerPosition.getWidth() + xm, playerPosition.getHeight() + ym);
+        Dimensions newPos = new Dimensions(pos.getWidth() + xm, pos.getHeight() + ym);
         int nx = newPos.getWidth(), ny = newPos.getHeight();
 
         // check if out of bounds

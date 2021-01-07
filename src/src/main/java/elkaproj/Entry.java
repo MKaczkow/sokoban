@@ -31,6 +31,28 @@ public class Entry {
      */
     public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66";
 
+    /**
+     * Regular variant of the UI font.
+     */
+    public static Font IBMPlexRegular;
+
+    /**
+     * Italic variant of the UI font.
+     */
+    public static Font IBMPlexItalic;
+
+
+    /**
+     * Bold variant of the UI font.
+     */
+    public static Font IBMPlexBold;
+
+
+    /**
+     * Bold italic variant of the UI font.
+     */
+    public static Font IBMPlexBoldItalic;
+
     public static void main(String[] args) {
         // parse commandline options
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
@@ -141,6 +163,11 @@ public class Entry {
             ge.registerFont(plexI);
             ge.registerFont(plexB);
             ge.registerFont(plexBI);
+
+            IBMPlexRegular = plexR;
+            IBMPlexBold = plexB;
+            IBMPlexItalic = plexI;
+            IBMPlexBoldItalic = plexBI;
 
             Enumeration<Object> uiSettings = UIManager.getDefaults().keys();
             while (uiSettings.hasMoreElements()) {
