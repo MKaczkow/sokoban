@@ -3,6 +3,7 @@ package elkaproj.game;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import javax.swing.*;
+import javax.swing.event.*;
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Collections;
@@ -47,7 +48,7 @@ public class Scoreboard extends JPanel{
      */
 
     public Scoreboard(int panelWidth, int panelHeight,
-                          ActionListener menuListener, boolean online) {
+                          ActionListener menuListener) {
 
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(panelWidth, panelHeight));

@@ -185,7 +185,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
                 break;
 
             case COMMAND_PAUSE_RESUME:
-                this.gameController.setGamePaused();
+                this.gameController.togglePause();
                 break;
         }
     }

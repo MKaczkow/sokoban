@@ -30,6 +30,7 @@ public class GameController {
     private int numCrates = 0, numMatched = 0;
     private Dimensions playerPosition = null;
     private boolean acceptsInput = true;
+    private boolean isPaused = false;
 
     /**
      * Initializes the controller.
@@ -229,17 +230,14 @@ public class GameController {
     /**
      * Pauses or resumes game.
      */
-    public void setGamePaused() {
-        if (gamePaused = false) {
+    public void togglePause() {
+        this.gamePaused = !this.gamePaused;
+        this.enableInput(!this.gamePaused);
+
+        if (this.gamePaused)
             this.onGamePaused();
-            this.enableInput(false);
-            gamePaused = true;
-        }
-        else {
+        else
             this.onGameResumed();
-            this.enableInput(true);
-            gamePaused = false;
-        }
     }
 
     /**
