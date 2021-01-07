@@ -115,6 +115,7 @@ public class GameController {
      * Adds a game event handler.
      * @param gameEventHandler Game event handler.
      */
+
     public void addGameEventHandler(IGameEventHandler gameEventHandler) {
         this.gameEventHandlers.add(gameEventHandler);
     }
@@ -159,6 +160,7 @@ public class GameController {
     private void prepareLevel() {
         this.numCrates = 0;
         this.numMatched = 0;
+        this.acceptsInput = true;
 
         Dimensions levelSize = this.currentLevel.getSize();
         this.board = new LevelTile[levelSize.getHeight()][];
@@ -219,20 +221,6 @@ public class GameController {
         this.currentLevel = null;
         this.currentScore = 0;
         this.totalScore = 0;
-    }
-
-    /**
-     * Displays frame with authors' names.
-     */
-    public void showAuthors() {
-
-    }
-
-    /**
-     * Displays frame with scoreboard.
-     */
-    public void showScoreboard() {
-
     }
 
     /**
