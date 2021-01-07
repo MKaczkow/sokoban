@@ -13,6 +13,7 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.Dialog;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -164,11 +165,13 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
                 break;
             
             case COMMAND_AUTHORS:
-                this.gameController.showAuthors();
+                JOptionPane.showMessageDialog(this,
+                        "Mateusz Brawanski\nMaciej Kaczkowski",
+                        "Authors", JOptionPane.PLAIN_MESSAGE);
                 break;
 
             case COMMAND_SCOREBOARD:
-                this.gameController.showScoreboard();
+
                 break;
 
             case COMMAND_RESET:

@@ -112,22 +112,6 @@ public class GameController {
     }
 
     /**
-     * Displays frame with authors' names.
-     */
-
-    public void showAuthors() {
-
-    }
-
-    /**
-     * Displays frame with scoreboard.
-     */
-
-    public void showScoreboard() {
-
-    }
-
-    /**
      * Pauses/ resumes game.
      */
 
