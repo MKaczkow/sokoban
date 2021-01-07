@@ -171,8 +171,9 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
             
             case COMMAND_AUTHORS:
                 JOptionPane.showMessageDialog(this,
-                        "Mateusz Brawanski\nMaciej Kaczkowski",
-                        "Authors", JOptionPane.PLAIN_MESSAGE);
+                        this.language.getValue(STRING_AUTHORS_DIALOG_CONTENTS_L10N_ID),
+                        this.language.getValue(STRING_AUTHORS_DIALOG_TITLE_L10N_ID),
+                        JOptionPane.INFORMATION_MESSAGE);
                 break;
 
             case COMMAND_SCOREBOARD:
