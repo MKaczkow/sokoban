@@ -230,20 +230,26 @@ public class GameController {
      * Pauses or resumes game.
      */
     public void setGamePaused() {
-        if (gamePaused = true) {
+        if (gamePaused = false) {
+            this.onGamePaused();
+            gamePaused = true;
+        }
+        else {
+            this.onGameResumed();
             gamePaused = false;
         }
-        else gamePaused = true;
-
-        // add a bool param instead?
-        // fire appropriate event
     }
 
     /**
      * Resets level.
      */
     public void resetLevel() {
-        // prepareLevel(), reduce currentLives (check if still have any), fire lives and board events
+        this.prepareLevel();
+        if (currentLives >= 1) { currentLives--; }
+        else { stopGame(false); }
+
+        // fire lives and board events
+
     }
 
     /**
@@ -292,6 +298,7 @@ public class GameController {
         // check if wall
         if (this.board[ny][nx] == LevelTile.WALL)
             return;
+        //TODO: implement GHOST power-up logic here
 
         // check if crate
         HashSet<Dimensions.Delta> deltas = null;
@@ -299,7 +306,7 @@ public class GameController {
             // check if stacked crate or stacked wall
             if (this.crates[ny + ym][nx + xm] || this.board[ny + ym][nx + xm] == LevelTile.WALL)
                 return;
-
+            //TODO: implement STRENGTH and PULL  power-ups logic here
             this.crates[ny + ym][nx + xm] = true;
             this.crates[ny][nx] = false;
 
