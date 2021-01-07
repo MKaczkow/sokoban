@@ -112,45 +112,9 @@ public class GameController {
     }
 
     /**
-     * Displays frame with authors' names.
-     */
-
-    public void showAuthors() {
-
-    }
-
-    /**
-     * Displays frame with scoreboard.
-     */
-
-    public void showScoreboard() {
-
-    }
-
-    /**
-     * Pauses/ resumes game.
-     */
-
-    public void setGamePaused() {
-        if (gamePaused = true) {
-            gamePaused = false;
-        }
-        else gamePaused = true;
-    }
-
-    /**
-     * Resets level.
-     */
-
-    public void resetLevel() {
-
-    }
-
-    /**
      * Adds a game event handler.
      * @param gameEventHandler Game event handler.
      */
-
     public void addGameEventHandler(IGameEventHandler gameEventHandler) {
         this.gameEventHandlers.add(gameEventHandler);
     }
@@ -182,9 +146,19 @@ public class GameController {
         this.currentLevel = this.levelPack.getLevel(this.currentLevelNumber);
         this.totalScore += this.currentScore;
         this.currentScore = 0;
+        this.acceptsInput = true;
+
+        this.prepareLevel();
+
+        this.onScoreUpdated(this.currentScore, this.totalScore);
+        this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, null);
+
+        return true;
+    }
+
+    private void prepareLevel() {
         this.numCrates = 0;
         this.numMatched = 0;
-        this.acceptsInput = true;
 
         Dimensions levelSize = this.currentLevel.getSize();
         this.board = new LevelTile[levelSize.getHeight()][];
@@ -211,11 +185,6 @@ public class GameController {
                 }
             }
         }
-
-        this.onScoreUpdated(this.currentScore, this.totalScore);
-        this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, null);
-
-        return true;
     }
 
     /**
@@ -250,6 +219,40 @@ public class GameController {
         this.currentLevel = null;
         this.currentScore = 0;
         this.totalScore = 0;
+    }
+
+    /**
+     * Displays frame with authors' names.
+     */
+    public void showAuthors() {
+
+    }
+
+    /**
+     * Displays frame with scoreboard.
+     */
+    public void showScoreboard() {
+
+    }
+
+    /**
+     * Pauses or resumes game.
+     */
+    public void setGamePaused() {
+        if (gamePaused = true) {
+            gamePaused = false;
+        }
+        else gamePaused = true;
+
+        // add a bool param instead?
+        // fire appropriate event
+    }
+
+    /**
+     * Resets level.
+     */
+    public void resetLevel() {
+        // prepareLevel(), reduce currentLives (check if still have any), fire lives and board events
     }
 
     /**
@@ -358,6 +361,18 @@ public class GameController {
     private void onScoreUpdated(int currentScore, int totalScore) {
         for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
             handler.onScoreUpdated(currentScore, totalScore);
+        }
+    }
+
+    private void onGamePaused() {
+        for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
+            handler.onGamePaused();
+        }
+    }
+
+    private void onGameResumed() {
+        for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
+            handler.onGameResumed();
         }
     }
 

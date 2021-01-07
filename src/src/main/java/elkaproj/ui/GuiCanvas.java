@@ -10,6 +10,7 @@ import elkaproj.game.IGameEventHandler;
 import elkaproj.game.IGameLifecycleHandler;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -99,11 +100,11 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         }
     }
 
-    @Override
-    public void addNotify() {
-        super.addNotify();
-        this.createBufferStrategy(3);
-        this.bs = this.getBufferStrategy();
+    public void updateBufferStrategy() {
+        SwingUtilities.invokeLater(() -> {
+            this.createBufferStrategy(3);
+            this.bs = this.getBufferStrategy();
+        });
     }
 
     private void redrawGame(Graphics2D g) {
@@ -251,25 +252,9 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
     }
 
     @Override
-    public void onGameStarted(ILevel currentLevel, int currentLives) {
-    }
-
-    @Override
     public void onGameStopped(int totalScore, boolean completed) {
         this.isRunning = false;
         this.bs = null;
-    }
-
-    @Override
-    public void onNextLevel(ILevel currentLevel, int totalScore) {
-    }
-
-    @Override
-    public void onLivesUpdated(int currentLives, int maxLives) {
-    }
-
-    @Override
-    public void onScoreUpdated(int currentScore, int totalScore) {
     }
 
     @Override
@@ -318,8 +303,8 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         public void run() {
             DebugWriter.INSTANCE.logMessage("ANIM-THREAD", "Animation thread started");
 
-            try {
-                while (this.run) {
+            while (this.run) {
+                try {
                     long nt = System.nanoTime();
 
                     Thread.yield();
@@ -347,9 +332,10 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
                     if (wait > 0) {
                         Thread.sleep(wait / 1000000, wait % 1000000);
                     }
+                } catch (IllegalStateException ignored) {
+                } catch (Exception ex) {
+                    DebugWriter.INSTANCE.logError("ANIM-THREAD", ex, "Animation exception");
                 }
-            } catch (Exception ex) {
-                DebugWriter.INSTANCE.logError("ANIM-THREAD", ex, "Animation exception");
             }
         }
 

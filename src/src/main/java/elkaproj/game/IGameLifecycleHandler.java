@@ -12,33 +12,43 @@ public interface IGameLifecycleHandler {
      * @param currentLevel The level currently being played.
      * @param currentLives The number of lives the player has.
      */
-    void onGameStarted(ILevel currentLevel, int currentLives);
+    default void onGameStarted(ILevel currentLevel, int currentLives) { }
 
     /**
      * Triggered whenever a game is finished.
      * @param totalScore Player's final total score.
      * @param completed Whether the game was completed.
      */
-    void onGameStopped(int totalScore, boolean completed);
+    default void onGameStopped(int totalScore, boolean completed) { }
 
     /**
      * Triggered whenever a new level is started.
      * @param currentLevel The level currently being played.
      * @param totalScore Player's current total score.
      */
-    void onNextLevel(ILevel currentLevel, int totalScore);
+    default void onNextLevel(ILevel currentLevel, int totalScore) { }
 
     /**
      * Triggered whenever the number of lives the player has changes.
      * @param currentLives Player's current life count.
      * @param maxLives Player's maximum life count.
      */
-    void onLivesUpdated(int currentLives, int maxLives);
+    default void onLivesUpdated(int currentLives, int maxLives) { }
 
     /**
      * Triggered whenever score is updated.
      * @param currentScore Player's current level score.
      * @param totalScore Player's total score.
      */
-    void onScoreUpdated(int currentScore, int totalScore);
+    default void onScoreUpdated(int currentScore, int totalScore) { }
+
+    /**
+     * Triggered whenever the game is paused.
+     */
+    default void onGamePaused() { }
+
+    /**
+     * Triggered whenever the game is unpaused.
+     */
+    default void onGameResumed() { }
 }

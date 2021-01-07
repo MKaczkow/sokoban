@@ -186,6 +186,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
     @Override
     public void onGameStarted(ILevel currentLevel, int currentLives) {
         this.setActiveView(this.gameView);
+        this.gameView.updateBufferStrategy();
     }
 
     @Override
@@ -197,18 +198,6 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
                     JOptionPane.INFORMATION_MESSAGE);
 
         this.setActiveView(this.mainMenuView);
-    }
-
-    @Override
-    public void onNextLevel(ILevel currentLevel, int totalScore) {
-    }
-
-    @Override
-    public void onLivesUpdated(int currentLives, int maxLives) {
-    }
-
-    @Override
-    public void onScoreUpdated(int currentScore, int totalScore) {
     }
 
     private void setActiveView(Component component) {
