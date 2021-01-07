@@ -232,10 +232,12 @@ public class GameController {
     public void setGamePaused() {
         if (gamePaused = false) {
             this.onGamePaused();
+            this.enableInput(false);
             gamePaused = true;
         }
         else {
             this.onGameResumed();
+            this.enableInput(true);
             gamePaused = false;
         }
     }
@@ -245,11 +247,15 @@ public class GameController {
      */
     public void resetLevel() {
         this.prepareLevel();
-        if (currentLives >= 1) { currentLives--; }
+        if (currentLives >= 1) {
+            this.currentLives--;
+            this.onLivesUpdated(this.getCurrentLives(), this.getMaxLives());
+            HashSet<Dimensions.Delta> deltas = null;
+
+            this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, deltas);
+
+        }
         else { stopGame(false); }
-
-        // fire lives and board events
-
     }
 
     /**
