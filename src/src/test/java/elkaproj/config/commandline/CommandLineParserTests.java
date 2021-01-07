@@ -21,11 +21,8 @@ public class CommandLineParserTests {
             "  --online | -o\n" +
             "    Enables online mode. This causes the game to pull configuration data from the specified server.\n" +
             "\n" +
-            "  --online-hostname=value | -svalue | -s value\n" +
-            "    Online server to pull configuration data from.\n" +
-            "\n" +
-            "  --online-port=value | -pvalue | -p value\n" +
-            "    Port of the configuration server.\n" +
+            "  --online-endpoint=value | -svalue | -s value\n" +
+            "    HTTP endpoint to pull configuration data from.\n" +
             "\n" +
             "  --language=value | -lvalue | -l value\n" +
             "    UI language.\n" +
@@ -60,7 +57,7 @@ public class CommandLineParserTests {
     @Test
     public void testLongArguments() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "--debug", "--online-hostname=test.example.com", "--online-port=42069" });
+        CommandLineOptions opts = clp.parse(new String[] { "--debug", "--online-endpoint=https://test.example.com" });
 
         this.assertCommon1(opts);
     }
@@ -68,7 +65,7 @@ public class CommandLineParserTests {
     @Test
     public void testShortArguments1() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-dstest.example.com", "-p42069" });
+        CommandLineOptions opts = clp.parse(new String[] { "-dshttps://test.example.com" });
 
         this.assertCommon1(opts);
     }
@@ -76,7 +73,7 @@ public class CommandLineParserTests {
     @Test
     public void testShortArguments2() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-d", "-stest.example.com", "-p42069" });
+        CommandLineOptions opts = clp.parse(new String[] { "-d", "-shttps://test.example.com" });
 
         this.assertCommon1(opts);
     }
@@ -84,7 +81,7 @@ public class CommandLineParserTests {
     @Test
     public void testShortArguments3() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-d", "-s", "test.example.com", "-p42069" });
+        CommandLineOptions opts = clp.parse(new String[] { "-d", "-s", "https://test.example.com" });
 
         this.assertCommon1(opts);
     }
@@ -116,7 +113,7 @@ public class CommandLineParserTests {
     @Test
     public void testMixedArguments() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-d", "--online-hostname=test.example.com", "-p", "42069" });
+        CommandLineOptions opts = clp.parse(new String[] { "-d", "--online-endpoint=https://test.example.com" });
 
         this.assertCommon1(opts);
     }
@@ -150,8 +147,7 @@ public class CommandLineParserTests {
         Assert.assertTrue(opts.isDebug());
         Assert.assertFalse(opts.isHelp());
         Assert.assertFalse(opts.useOnline());
-        Assert.assertEquals("test.example.com", opts.getOnlineServer());
-        Assert.assertEquals(42069, opts.getOnlinePort());
+        Assert.assertEquals("https://test.example.com", opts.getOnlineEndpoint());
         Assert.assertEquals("pl-PL", opts.getLanguage());
     }
 
@@ -160,8 +156,7 @@ public class CommandLineParserTests {
         Assert.assertTrue(opts.isDebug());
         Assert.assertTrue(opts.isHelp());
         Assert.assertTrue(opts.useOnline());
-        Assert.assertEquals("localhost", opts.getOnlineServer());
-        Assert.assertEquals(20420, opts.getOnlinePort());
+        Assert.assertEquals("https://static.emzi0767.com/misc/eiti/proze/config", opts.getOnlineEndpoint());
         Assert.assertEquals("pl-PL", opts.getLanguage());
     }
 }
