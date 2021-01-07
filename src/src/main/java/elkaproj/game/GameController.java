@@ -2,10 +2,11 @@ package elkaproj.game;
 
 import elkaproj.DebugWriter;
 import elkaproj.config.*;
-import sun.security.ssl.Debug;
+import elkaproj.config.GamePowerup;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -25,6 +26,7 @@ public class GameController {
     private ILevel currentLevel = null;
     private int currentScore = 0;
     private int totalScore = 0;
+    private EnumSet<GamePowerup> powerUps;
 
     private boolean gamePaused = false;
     private LevelTile[][] board = null;
@@ -57,6 +59,14 @@ public class GameController {
      */
     public int getCurrentLives() {
         return this.currentLives;
+    }
+
+    /**
+     * Gets active power-ups (out of the list of 3).
+     * @return Active power-ups.
+     */
+    public EnumSet<GamePowerup> getPowerUps() {
+        return this.powerUps;
     }
 
     /**
@@ -212,7 +222,7 @@ public class GameController {
         this.currentStreak = 0;
         this.currentScore = 0;
         this.totalScore = 0;
-
+        this.powerUps = EnumSet.allOf(GamePowerup.class);
         this.onGameStarted(this.currentLevel, this.currentLives);
         this.onLivesUpdated(this.currentLives, this.configuration.getMaxLives());
     }
@@ -308,9 +318,9 @@ public class GameController {
             return;
 
         // check if wall
-        if (this.board[ny][nx] == LevelTile.WALL)
+        if (this.board[ny][nx] == LevelTile.WALL && !(this.powerUps.contains(GamePowerup.GHOST)))
             return;
-        //TODO: implement GHOST power-up logic here
+        this.powerUps.remove(GamePowerup.GHOST);
 
         // check if crate
         HashSet<Dimensions.Delta> deltas = null;
