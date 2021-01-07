@@ -133,6 +133,15 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, size.width, size.height);
 
+            this.drawBoardLayer(g, this.board, tileStart, tileSize);
+            this.drawCrateLayer(g,
+                    this.crates,
+                    this.playerDelta != null ? this.playerDelta : new Dimensions.Delta(this.playerPosition, this.playerPosition),
+                    this.crateDeltas,
+                    tileStart,
+                    tileSize,
+                    animationOffset);
+
             if (this.gameController.isPaused()) {
                 Font f = Entry.IBMPlexBoldItalic.deriveFont(36f);
                 FontMetrics fm = g.getFontMetrics(f);
@@ -148,15 +157,6 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
                 g.setFont(f);
                 g.drawString(this.pauseString, 28, 28 + h - fm.getDescent());
             }
-
-            this.drawBoardLayer(g, this.board, tileStart, tileSize);
-            this.drawCrateLayer(g,
-                    this.crates,
-                    this.playerDelta != null ? this.playerDelta : new Dimensions.Delta(this.playerPosition, this.playerPosition),
-                    this.crateDeltas,
-                    tileStart,
-                    tileSize,
-                    animationOffset);
         } finally {
             this.boardLock.unlock();
         }
