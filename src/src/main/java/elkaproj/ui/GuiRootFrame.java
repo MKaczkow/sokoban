@@ -24,6 +24,8 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
     public static final String STRING_WIN_DIALOG_TITLE_L10N_ID = "dialogs.win.title";
     public static final String STRING_WIN_DIALOG_CONTENTS_L10N_ID = "dialogs.win.message";
+    public static final String STRING_AUTHORS_DIALOG_TITLE_L10N_ID = "dialogs.authors.title";
+    public static final String STRING_AUTHORS_DIALOG_CONTENTS_L10N_ID = "dialogs.authors.message";
 
     public static final String COMMAND_EXIT = "PROZEkt_exit";
     public static final String COMMAND_PAUSE_RESUME = "PROZEkt_pause_resume";
