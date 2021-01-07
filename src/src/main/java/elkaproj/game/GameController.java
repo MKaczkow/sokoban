@@ -24,6 +24,7 @@ public class GameController {
     private int currentScore = 0;
     private int totalScore = 0;
 
+    private boolean gamePaused = false;
     private LevelTile[][] board = null;
     private boolean[][] crates = null;
     private int numCrates = 0, numMatched = 0;
@@ -111,9 +112,45 @@ public class GameController {
     }
 
     /**
+     * Displays frame with authors' names.
+     */
+
+    public void showAuthors() {
+
+    }
+
+    /**
+     * Displays frame with scoreboard.
+     */
+
+    public void showScoreboard() {
+
+    }
+
+    /**
+     * Pauses/ resumes game.
+     */
+
+    public void setGamePaused() {
+        if (gamePaused = true) {
+            gamePaused = false;
+        }
+        else gamePaused = true;
+    }
+
+    /**
+     * Resets level.
+     */
+
+    public void resetLevel() {
+
+    }
+
+    /**
      * Adds a game event handler.
      * @param gameEventHandler Game event handler.
      */
+
     public void addGameEventHandler(IGameEventHandler gameEventHandler) {
         this.gameEventHandlers.add(gameEventHandler);
     }

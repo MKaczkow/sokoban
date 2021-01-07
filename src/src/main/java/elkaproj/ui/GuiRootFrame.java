@@ -162,6 +162,22 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
             case COMMAND_STOP:
                 this.gameController.stopGame(false);
                 break;
+            
+            case COMMAND_AUTHORS:
+                this.gameController.showAuthors();
+                break;
+
+            case COMMAND_SCOREBOARD:
+                this.gameController.showScoreboard();
+                break;
+
+            case COMMAND_RESET:
+                this.gameController.resetLevel();
+                break;
+
+            case COMMAND_PAUSE_RESUME:
+                this.gameController.setGamePaused();
+                break;
         }
     }
 
