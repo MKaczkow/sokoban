@@ -15,25 +15,24 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * Root canvas, on which the actual game will be drawn.
  */
 public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecycleHandler, KeyListener {
 
-    private static final int ANIMATION_FRAME_COUNT = 10;
-    private static final int ANIMATION_FRAME_TIME = 50;
-    private static final int ANIMATION_DURATION = ANIMATION_FRAME_COUNT * ANIMATION_FRAME_TIME;
+    private final float animationFrameDelay;
+    private final int animationDuration = 150;
 
     private final GameController gameController;
 
     private Dimensions levelSize = null;
 
     private boolean isRunning = false;
-    private boolean boardInvalid = true;
     private LevelTile[][] board = null;
     private boolean[][] crates = null;
     private Dimensions playerPosition = null;
@@ -41,7 +40,8 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
     private Set<Dimensions.Delta> crateDeltas = null;
     private final ReentrantLock boardLock = new ReentrantLock();
 
-    private final java.util.Timer timer;
+    private final BoardTimer boardTimer;
+    private final Thread animationThread;
 
     private long lastInputLockout = 0;
 
@@ -60,8 +60,13 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         this.addKeyListener(this);
         this.setFocusable(true);
 
-        this.timer = new java.util.Timer();
-        this.timer.scheduleAtFixedRate(new BoardTimer(this), ANIMATION_DURATION, ANIMATION_DURATION); // ~66.6FPS
+        int animationFps = this.computeOptimalFps();
+        this.animationFrameDelay = 1000f / animationFps;
+        DebugWriter.INSTANCE.logMessage("CANVAS", "Animating at %d FPS", animationFps);
+
+        this.boardTimer = new BoardTimer(this);
+        this.animationThread = new Thread(this.boardTimer);
+        this.animationThread.start();
 
         this.tileFloor = ImageIO.read(this.getClass().getResource("/tiles/floor.png"));
         this.tileWall = ImageIO.read(this.getClass().getResource("/tiles/wall.png"));
@@ -70,12 +75,28 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         this.tilePlayer = ImageIO.read(this.getClass().getResource("/tiles/player.png"));
     }
 
+    private int computeOptimalFps() {
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] gs = ge.getScreenDevices();
+        int ref = 60;
+        for (GraphicsDevice g : gs) {
+            DisplayMode dm = g.getDisplayMode();
+            int r = dm.getRefreshRate();
+            ref = Math.max(r, ref);
+        }
+
+        return ref;
+    }
+
     /**
      * Stops timers and performs necessary shutdown operations.
      */
     public void performShutdown() {
-        this.timer.cancel();
-        this.timer.purge();
+        this.boardTimer.cancel();
+        try {
+            this.animationThread.join();
+        } catch (InterruptedException ignored) {
+        }
     }
 
     @Override
@@ -90,10 +111,8 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
             this.boardLock.lock();
 
             long currentTime = System.currentTimeMillis();
-            if (currentTime + ANIMATION_DURATION >= this.lastInputLockout)
+            if (currentTime + this.animationDuration >= this.lastInputLockout)
                 this.gameController.enableInput(true);
-
-            long n1 = System.nanoTime();
 
             int tileSize = this.computeTileSize();
             Dimensions tileStart = this.computeTileStart(tileSize);
@@ -103,35 +122,23 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
             Dimension size = this.getSize();
 
-            if (this.boardInvalid) {
-                g.setColor(Color.BLACK);
-                g.fillRect(0, 0, size.width, size.height);
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, size.width, size.height);
 
-                this.drawBoardLayer(g, this.board, tileStart, tileSize, animationOffset);
-                this.drawCrateLayer(g,
-                        this.crates,
-                        this.playerDelta != null ? this.playerDelta : new Dimensions.Delta(this.playerPosition, this.playerPosition),
-                        tileStart,
-                        tileSize,
-                        animationOffset);
-            } else {
-                this.drawDeltas(g,
-                        this.board,
-                        this.playerDelta != null ? this.playerDelta : new Dimensions.Delta(this.playerPosition, this.playerPosition),
-                        this.crateDeltas,
-                        tileStart,
-                        tileSize,
-                        animationOffset);
-            }
-
-            long n2 = System.nanoTime();
-            DebugWriter.INSTANCE.logMessage("TIMER", "%d", n2 - n1);
+            this.drawBoardLayer(g, this.board, tileStart, tileSize);
+            this.drawCrateLayer(g,
+                    this.crates,
+                    this.playerDelta != null ? this.playerDelta : new Dimensions.Delta(this.playerPosition, this.playerPosition),
+                    this.crateDeltas,
+                    tileStart,
+                    tileSize,
+                    animationOffset);
         } finally {
             this.boardLock.unlock();
         }
     }
 
-    private void drawBoardLayer(Graphics2D g, LevelTile[][] board, Dimensions tileStart, int tileSize, int animationOffset) {
+    private void drawBoardLayer(Graphics2D g, LevelTile[][] board, Dimensions tileStart, int tileSize) {
         int w = tileStart.getWidth();
         int h = tileStart.getHeight();
 
@@ -142,46 +149,34 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         }
     }
 
-    private void drawCrateLayer(Graphics2D g, boolean[][] crates, Dimensions.Delta playerDelta, Dimensions tileStart, int tileSize, int animationOffset) {
+    private void drawCrateLayer(Graphics2D g, boolean[][] crates, Dimensions.Delta playerDelta, Set<Dimensions.Delta> crateDeltas, Dimensions tileStart, int tileSize, int animationOffset) {
         int w = tileStart.getWidth();
         int h = tileStart.getHeight();
 
-        for (int y = 0; y < this.levelSize.getHeight(); y++) {
-            for (int x = 0; x < this.levelSize.getWidth(); x++) {
+        int x = playerDelta.getTo().getWidth(), y = playerDelta.getTo().getHeight();
+        if (animationOffset >= tileSize) {
+            g.drawImage(this.tilePlayer, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
+        } else {
+            g.drawImage(this.tilePlayer, (w + playerDelta.getFrom().getWidth() * tileSize) + playerDelta.getXChange() * animationOffset, (h + playerDelta.getFrom().getHeight() * tileSize) + playerDelta.getYChange() * animationOffset, tileSize, tileSize, null);
+        }
 
-                if (crates[y][x])
+        Set<Dimensions> forbiddenCrates = crateDeltas != null ? crateDeltas.stream()
+                .map(Dimensions.Delta::getTo)
+                .collect(Collectors.toSet()) : new HashSet<>();
+
+        for (y = 0; y < this.levelSize.getHeight(); y++) {
+            for (x = 0; x < this.levelSize.getWidth(); x++) {
+                if (crates[y][x] && (animationOffset >= tileSize || !forbiddenCrates.contains(new Dimensions(x, y))))
                     g.drawImage(this.tileCrate, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
-
-                if (playerDelta.getTo().getWidth() == x && playerDelta.getTo().getHeight() == y)
-                    g.drawImage(this.tilePlayer, w + x * tileSize, h + y * tileSize, tileSize, tileSize, null);
             }
         }
-    }
 
-    private void drawDeltas(Graphics2D g, LevelTile[][] board, Dimensions.Delta playerDelta, Set<Dimensions.Delta> crateDeltas, Dimensions tileStart, int tileSize, int animationOffset) {
-        int w = tileStart.getWidth();
-        int h = tileStart.getHeight();
-
-        Dimensions pFrom = playerDelta.getFrom(),
-                pTo = playerDelta.getTo();
-
-        if (animationOffset < ANIMATION_DURATION) {
-            int x1 = pFrom.getWidth(), y1 = pFrom.getHeight();
-            int x2 = pTo.getWidth(), y2 = pTo.getHeight();
-            this.drawTilesUnderMovingObject(g, x1, y1, x2, y2, w, h, this.tilePlayer, board, playerDelta, tileSize, animationOffset);
-        } else {
-            int x = pFrom.getWidth(), y = pFrom.getHeight();
-            this.drawBoardTileAt(g, x, y, w, h, board[y][x], tileSize);
-
-            g.drawImage(this.tilePlayer, w + pTo.getWidth() * tileSize, h + pTo.getHeight() * tileSize, tileSize, tileSize, null);
+        if (animationOffset < tileSize && crateDeltas != null) {
+            for (Dimensions.Delta crateDelta : crateDeltas) {
+                int cx = crateDelta.getFrom().getWidth(), cy = crateDelta.getFrom().getHeight();
+                g.drawImage(this.tileCrate, (w + cx * tileSize) + animationOffset * crateDelta.getXChange(), (h + cy * tileSize) + animationOffset * crateDelta.getYChange(), tileSize, tileSize, null);
+            }
         }
-    }
-
-    private void drawTilesUnderMovingObject(Graphics2D g, int x1, int y1, int x2, int y2, int w, int h, Image tileImage, LevelTile[][] board, Dimensions.Delta delta, int tileSize, int animationOffset) {
-        this.drawBoardTileAt(g, x1, y1, w, h, board[y1][x1], tileSize);
-        this.drawBoardTileAt(g, x2, y2, w, h, board[y2][x2], tileSize);
-
-        g.drawImage(tileImage, (w + x1 * tileSize) + animationOffset * delta.getXChange(), (h + y1 * tileSize) + animationOffset * delta.getYChange(), tileSize, tileSize, null);
     }
 
     private void drawBoardTileAt(Graphics2D g, int x, int y, int w, int h, LevelTile tile, int tileSize) {
@@ -240,10 +235,10 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
     private float computeAnimationOffset(long currentTime) {
         long tDelta = currentTime - this.lastInputLockout;
-        if (tDelta >= ANIMATION_DURATION)
+        if (tDelta >= this.animationDuration)
             return 1.0f;
 
-        return tDelta / (float)ANIMATION_DURATION;
+        return tDelta / (float)this.animationDuration;
     }
 
     private Dimensions computeTileStart(int tileSize) {
@@ -257,18 +252,16 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
     @Override
     public void onGameStarted(ILevel currentLevel, int currentLives) {
-        this.boardInvalid = true;
     }
 
     @Override
     public void onGameStopped(int totalScore, boolean completed) {
         this.isRunning = false;
-        this.boardInvalid = true;
+        this.bs = null;
     }
 
     @Override
     public void onNextLevel(ILevel currentLevel, int totalScore) {
-        this.boardInvalid = true;
     }
 
     @Override
@@ -292,25 +285,30 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         switch (keyEvent.getKeyCode()) {
             case KeyEvent.VK_LEFT:
                 this.gameController.move(GameMovementDirection.LEFT);
+                this.gameController.enableInput(false);
                 break;
 
             case KeyEvent.VK_RIGHT:
                 this.gameController.move(GameMovementDirection.RIGHT);
+                this.gameController.enableInput(false);
                 break;
 
             case KeyEvent.VK_UP:
                 this.gameController.move(GameMovementDirection.UP);
+                this.gameController.enableInput(false);
                 break;
 
             case KeyEvent.VK_DOWN:
                 this.gameController.move(GameMovementDirection.DOWN);
+                this.gameController.enableInput(false);
                 break;
         }
     }
 
-    private static class BoardTimer extends TimerTask {
+    private static class BoardTimer implements Runnable {
 
         private final GuiCanvas guiCanvas;
+        private boolean run = true;
 
         public BoardTimer(GuiCanvas guiCanvas) {
             this.guiCanvas = guiCanvas;
@@ -318,21 +316,45 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
         @Override
         public void run() {
-            if (!this.guiCanvas.gameController.isGameRunning() || !this.guiCanvas.isRunning)
-                return;
+            DebugWriter.INSTANCE.logMessage("ANIM-THREAD", "Animation thread started");
 
-            BufferStrategy bs = this.guiCanvas.bs;
-            if (bs == null)
-                return;
+            try {
+                while (this.run) {
+                    long nt = System.nanoTime();
 
-            do {
-                Graphics2D g = (Graphics2D) bs.getDrawGraphics();
-                this.guiCanvas.redrawGame(g);
-                g.dispose();
-                bs.show();
-            } while (bs.contentsLost() || bs.contentsRestored());
+                    Thread.yield();
 
-            this.guiCanvas.boardInvalid = false;
+                    if (!this.guiCanvas.gameController.isGameRunning() || !this.guiCanvas.isRunning)
+                        continue;
+
+                    BufferStrategy bs = this.guiCanvas.bs;
+                    if (bs == null)
+                        continue;
+
+                    do {
+                        do {
+                            Graphics2D g = (Graphics2D) bs.getDrawGraphics();
+                            this.guiCanvas.redrawGame(g);
+                            g.dispose();
+                        } while (bs.contentsRestored());
+
+                        bs.show();
+                    } while (bs.contentsLost());
+
+                    nt = System.nanoTime() - nt;
+
+                    int wait = (int) (this.guiCanvas.animationFrameDelay * 1e6 - nt);
+                    if (wait > 0) {
+                        Thread.sleep(wait / 1000000, wait % 1000000);
+                    }
+                }
+            } catch (Exception ex) {
+                DebugWriter.INSTANCE.logError("ANIM-THREAD", ex, "Animation exception");
+            }
+        }
+
+        public void cancel() {
+            this.run = false;
         }
     }
 }
