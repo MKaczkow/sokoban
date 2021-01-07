@@ -9,9 +9,12 @@ import java.awt.event.ActionListener;
  */
 public class GuiMainMenuView extends JPanel {
 
-    private String playerName;
     private final JLabel playingAs;
 
+    /**
+     * Initializes this menu strip.
+     * @param actionListener Listener handling this menu's action events.
+     */
     public GuiMainMenuView(ActionListener actionListener) {
         super();
 
@@ -79,7 +82,6 @@ public class GuiMainMenuView extends JPanel {
     }
 
     public void setPlayerName(String playerName) {
-        this.playerName = playerName;
-        this.playingAs.setText(this.playerName);
+        this.playingAs.setText(playerName);
     }
 }

@@ -100,6 +100,9 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         }
     }
 
+    /**
+     * Updates buffering strategy to account for items going in and out of view. Should be called whenever this component is made visible.
+     */
     public void updateBufferStrategy() {
         SwingUtilities.invokeLater(() -> {
             this.createBufferStrategy(3);
