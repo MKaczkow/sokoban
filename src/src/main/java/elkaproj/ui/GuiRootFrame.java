@@ -54,6 +54,9 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
     /**
      * Creates an initializes a new game window.
      * @param language UI language to use.
+     * @param configuration Configuration for the game.
+     * @param levelPack Level pack the player will play through.
+     * @throws IOException Texture loading failed.
      */
     public GuiRootFrame(Language language, IConfiguration configuration, ILevelPack levelPack) throws IOException {
         super("@window.title");

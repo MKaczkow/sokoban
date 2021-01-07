@@ -40,6 +40,7 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
     /**
      * Creates a new configuration loader from given file stream.
      * @param file File to read configuration from.
+     * @throws FileNotFoundException Configuration file was not found.
      */
     public FileConfigurationLoader(File file) throws FileNotFoundException {
         this.file = file;

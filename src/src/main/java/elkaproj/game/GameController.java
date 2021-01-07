@@ -33,6 +33,8 @@ public class GameController {
 
     /**
      * Initializes the controller.
+     * @param configuration Configuration to use for this game.
+     * @param levelPack Level pack the player will play through.
      */
     public GameController(IConfiguration configuration, ILevelPack levelPack) {
         this.configuration = configuration;
@@ -207,6 +209,7 @@ public class GameController {
 
     /**
      * Stops the game, if applicable.
+     * @param completed Whether the stop happened as a result of game being completed. False indicates the game was interrupted manually.
      */
     public void stopGame(boolean completed) {
         if (this.currentLevelNumber < 0)

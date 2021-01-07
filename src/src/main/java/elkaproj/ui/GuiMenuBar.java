@@ -10,6 +10,7 @@ public class GuiMenuBar extends JMenuBar {
 
     /**
      * Creates a new menu bar for the game.
+     * @param actionListener Listener handling this menu's action events.
      */
     public GuiMenuBar(ActionListener actionListener) {
         super();
