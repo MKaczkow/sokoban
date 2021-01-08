@@ -222,7 +222,7 @@ public class GameController {
         this.currentStreak = 0;
         this.currentScore = 0;
         this.totalScore = 0;
-        this.powerUps = EnumSet.of(GamePowerup.PULL); //all power-ups granted for test purposes
+        this.powerUps = EnumSet.noneOf(GamePowerup.class);
         this.onGameStarted(this.currentLevel, this.currentLives);
         this.onLivesUpdated(this.currentLives, this.configuration.getMaxLives());
     }
