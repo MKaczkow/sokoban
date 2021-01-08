@@ -35,13 +35,13 @@ public class Scoreboard extends JPanel{
     }
 
     /**
-     * Lista wyników
+     * Scores list
      */
 
-    ArrayList<Score> ScoreList;
+    private ArrayList<Score> ScoreList;
 
     /**
-     * Konstruktor
+     * Initiates scoreboard
      * @param panelWidth width of panel
      * @param panelHeight heigth of panel
      * @param menuListener controller listener
@@ -59,10 +59,18 @@ public class Scoreboard extends JPanel{
         setVisible(true);
         }
 
-        /**
-         * generator tabeli wyników
-         * @return tabela wyników
-         */
+    /**
+     * Shows displays scoreboard as dialog window.
+     */
+
+    public void displayScoreboard() {
+
+    }
+
+    /**
+     * Initiates table of scores
+     * @return table of scores
+     */
 
     private JTable makeScoreboardTable() {
         sortList();
@@ -90,9 +98,9 @@ public class Scoreboard extends JPanel{
     }
 
     /**
-     * Generator przycisku powrotu do menu
-     * @param menuListener listener menu głownego
-     * @return przycisk powrotu do menu
+     * Initiates return button
+     * @param menuListener main menu listener
+     * @return return button
      */
     private JButton makeBackToMenuButton(ActionListener menuListener) {
         JButton backToMainMenuBtn = new JButton("Back to main menu");
@@ -103,8 +111,8 @@ public class Scoreboard extends JPanel{
     }
 
     /**
-     * Generator etykiety panelu wyników
-     * @return etykieta penelu
+     * Initiates scoreboard label
+     * @return scoreboard label
      */
     private JLabel makeScoreboardLabel() {
         JLabel highScoreLbl = new JLabel("<html><br> Scoreboard <br><br></html>");
@@ -114,7 +122,7 @@ public class Scoreboard extends JPanel{
         return highScoreLbl;
     }
     /**
-     * Sortowanie listy wyników
+     * Sorts list of scores
      */
 
      private void sortList() {
@@ -134,9 +142,9 @@ public class Scoreboard extends JPanel{
         }
 
         /**
-         * Dodanie wyniku do
-         * @param Name nick gracza
-         * @param Points liczba punktow
+         * Adds new score to lists
+         * @param Name nick
+         * @param Points number of points
          */
 
         private void addScore(String Name, int Points){

@@ -7,6 +7,7 @@ import elkaproj.config.ILevelPack;
 import elkaproj.config.language.Language;
 import elkaproj.game.GameController;
 import elkaproj.game.IGameLifecycleHandler;
+import elkaproj.game.Scoreboard;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -49,6 +50,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
     private final GuiCanvas gameView;
     private final GameController gameController;
 
+    private Scoreboard scoreboard;
     private Component activeComponent = null;
 
     /**
@@ -177,7 +179,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
                 break;
 
             case COMMAND_SCOREBOARD:
-
+                this.scoreboard.displayScoreboard();
                 break;
 
             case COMMAND_RESET:
