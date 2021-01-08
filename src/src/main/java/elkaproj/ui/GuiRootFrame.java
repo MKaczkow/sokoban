@@ -50,7 +50,6 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
     private final GuiCanvas gameView;
     private final GameController gameController;
 
-    private Scoreboard scoreboard;
     private Component activeComponent = null;
 
     /**
@@ -179,7 +178,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
                 break;
 
             case COMMAND_SCOREBOARD:
-                this.scoreboard.displayScoreboard();
+
                 break;
 
             case COMMAND_RESET:

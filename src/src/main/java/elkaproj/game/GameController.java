@@ -185,7 +185,6 @@ public class GameController {
         this.numCrates = 0;
         this.numMatched = 0;
         this.acceptsInput = true;
-        this.gameClock.resetClock();
 
         Dimensions levelSize = this.currentLevel.getSize();
         this.board = new LevelTile[levelSize.getHeight()][];
@@ -213,7 +212,6 @@ public class GameController {
             }
         }
 
-        this.gameClock.startClock();
     }
 
     /**
@@ -261,11 +259,9 @@ public class GameController {
         DebugWriter.INSTANCE.logMessage("GAME", "Pause status: %b", this.gamePaused);
         if (this.gamePaused) {
             this.onGamePaused();
-            this.gameClock.stopClock();
         }
         else {
             this.onGameResumed();
-            this.gameClock.startClock();
         }
     }
 
