@@ -3,6 +3,7 @@ package elkaproj.game;
 import elkaproj.DebugWriter;
 import elkaproj.config.*;
 import elkaproj.config.GamePowerup;
+import elkaproj.game.GameClock;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,6 +28,7 @@ public class GameController {
     private int currentScore = 0;
     private int totalScore = 0;
     private EnumSet<GamePowerup> powerUps;
+    private GameClock gameClock;
 
     private boolean gamePaused = false;
     private LevelTile[][] board = null;
@@ -183,6 +185,7 @@ public class GameController {
         this.numCrates = 0;
         this.numMatched = 0;
         this.acceptsInput = true;
+        this.gameClock.resetClock();
 
         Dimensions levelSize = this.currentLevel.getSize();
         this.board = new LevelTile[levelSize.getHeight()][];
@@ -209,6 +212,8 @@ public class GameController {
                 }
             }
         }
+
+        this.gameClock.startClock();
     }
 
     /**
@@ -254,10 +259,14 @@ public class GameController {
         this.enableInput(!this.gamePaused);
 
         DebugWriter.INSTANCE.logMessage("GAME", "Pause status: %b", this.gamePaused);
-        if (this.gamePaused)
+        if (this.gamePaused) {
             this.onGamePaused();
-        else
+            this.gameClock.stopClock();
+        }
+        else {
             this.onGameResumed();
+            this.gameClock.startClock();
+        }
     }
 
     /**
