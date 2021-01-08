@@ -222,7 +222,7 @@ public class GameController {
         this.currentStreak = 0;
         this.currentScore = 0;
         this.totalScore = 0;
-        this.powerUps = EnumSet.allOf(GamePowerup.class); //all power-ups granted for test purposes
+        this.powerUps = EnumSet.of(GamePowerup.PULL); //all power-ups granted for test purposes
         this.onGameStarted(this.currentLevel, this.currentLives);
         this.onLivesUpdated(this.currentLives, this.configuration.getMaxLives());
     }
@@ -352,6 +352,24 @@ public class GameController {
                 this.numMatched--;
         }
 
+        // check if PULL is used
+        if (this.powerUps.contains(GamePowerup.PULL)) {
+            // check if crate behind
+            if (this.crates[ny - ym][nx - xm]) {
+                this.powerUps.remove(GamePowerup.PULL);
+                // pull crate
+                this.crates[ny - ym][nx - xm] = false;
+                this.crates[ny][nx] = true;
+
+                deltas = new HashSet<>(1);
+                deltas.add(new Dimensions.Delta(new Dimensions(nx, ny), new Dimensions(nx + xm, ny + ym)));
+
+                if (this.board[ny + ym][nx + xm] == LevelTile.TARGET_SPOT && this.board[ny][nx] != LevelTile.TARGET_SPOT)
+                    this.numMatched++;
+                else if (this.board[ny + ym][nx + xm] != LevelTile.TARGET_SPOT && this.board[ny][nx] == LevelTile.TARGET_SPOT)
+                    this.numMatched--;
+            }
+        }
         this.playerPosition = newPos;
         this.currentScore++;
 
