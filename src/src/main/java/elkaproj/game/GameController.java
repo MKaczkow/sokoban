@@ -222,7 +222,7 @@ public class GameController {
         this.currentStreak = 0;
         this.currentScore = 0;
         this.totalScore = 0;
-        this.powerUps = EnumSet.allOf(GamePowerup.class);
+        this.powerUps = EnumSet.allOf(GamePowerup.class); //all power-ups granted for test purposes
         this.onGameStarted(this.currentLevel, this.currentLives);
         this.onLivesUpdated(this.currentLives, this.configuration.getMaxLives());
     }
@@ -325,12 +325,23 @@ public class GameController {
         // check if crate
         HashSet<Dimensions.Delta> deltas = null;
         if (this.crates[ny][nx]) {
-            // check if stacked crate or stacked wall
-            if (this.crates[ny + ym][nx + xm] || this.board[ny + ym][nx + xm] == LevelTile.WALL)
+            // check if stacked wall
+            if (this.board[ny + ym][nx + xm] == LevelTile.WALL)
                 return;
-            //TODO: implement STRENGTH and PULL  power-ups logic here
-            this.crates[ny + ym][nx + xm] = true;
+
+            // check if stacked crate
+            if (this.crates[ny + ym][nx + xm] && !(this.powerUps.contains(GamePowerup.STRENGTH)))
+                return;
+
+            // check if STRENGTH needed
+            if (this.crates[ny + ym][nx + xm]) {
+                this.crates[ny + 2 * ym][nx + 2 * xm] = true;
+                this.powerUps.remove(GamePowerup.STRENGTH);
+            }
+
+            // push crate
             this.crates[ny][nx] = false;
+            this.crates[ny + ym][nx + xm] = true;
 
             deltas = new HashSet<>(1);
             deltas.add(new Dimensions.Delta(new Dimensions(nx, ny), new Dimensions(nx + xm, ny + ym)));
