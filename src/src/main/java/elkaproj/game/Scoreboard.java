@@ -36,7 +36,6 @@ public class Scoreboard extends JPanel {
     /**
      * Scores list
      */
-
     private ArrayList<Score> ScoreList;
 
     /**
@@ -46,7 +45,6 @@ public class Scoreboard extends JPanel {
      * @param panelHeight  heigth of panel
      * @param menuListener controller listener
      */
-
     public Scoreboard(int panelWidth, int panelHeight,
                       ActionListener menuListener) {
 
@@ -62,7 +60,6 @@ public class Scoreboard extends JPanel {
     /**
      * Shows displays scoreboard as dialog window.
      */
-
     public void displayScoreboard() {
 
     }
@@ -72,7 +69,6 @@ public class Scoreboard extends JPanel {
      *
      * @return table of scores
      */
-
     private JTable makeScoreboardTable() {
         sortList();
         Vector<Vector> rowData = new Vector<>();
