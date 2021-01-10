@@ -13,6 +13,7 @@ public class GuiMainMenuView extends JPanel {
 
     /**
      * Initializes this menu strip.
+     *
      * @param actionListener Listener handling this menu's action events.
      */
     public GuiMainMenuView(ActionListener actionListener) {

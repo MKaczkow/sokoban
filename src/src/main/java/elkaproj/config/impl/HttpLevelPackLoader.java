@@ -28,6 +28,7 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
 
     /**
      * Creates a new load from URL endpoint.
+     *
      * @param endpointBase URL endpoint to load configuration from.
      */
     public HttpLevelPackLoader(URL endpointBase) {
@@ -36,6 +37,7 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
 
     /**
      * Loads the specified level pack.
+     *
      * @param id ID of the level pack to load.
      * @return Loaded level pack.
      * @throws IOException Loading of the pack failed.
@@ -108,6 +110,7 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
 
     /**
      * Closes this loader.
+     *
      * @throws IOException Closing failed.
      */
     @Override
@@ -221,40 +224,40 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
         }
     }
 
-    @XmlRootElement(name="level-pack")
+    @XmlRootElement(name = "level-pack")
     @XmlAccessorType(XmlAccessType.FIELD)
     private static class XmlHttpLevelPackMeta {
 
-        @XmlAttribute(name="id")
+        @XmlAttribute(name = "id")
         public String id;
 
-        @XmlAttribute(name="name")
+        @XmlAttribute(name = "name")
         public String name;
 
-        @XmlElement(name="level")
+        @XmlElement(name = "level")
         public XmlHttpLevelMeta[] levels;
     }
 
-    @XmlRootElement(name="level")
+    @XmlRootElement(name = "level")
     @XmlAccessorType(XmlAccessType.FIELD)
     private static class XmlHttpLevelMeta {
 
-        @XmlElement(name="ordinal")
+        @XmlElement(name = "ordinal")
         public int ordinal;
 
-        @XmlElement(name="name")
+        @XmlElement(name = "name")
         public String name;
 
-        @XmlElement(name="bonus-time")
+        @XmlElement(name = "bonus-time")
         public int bonusTime;
 
-        @XmlElement(name="penalty-time")
+        @XmlElement(name = "penalty-time")
         public int penaltyTime;
 
-        @XmlElement(name="fail-time")
+        @XmlElement(name = "fail-time")
         public int failTime;
 
-        @XmlElement(name="definition")
+        @XmlElement(name = "definition")
         public String definitionFile;
     }
 }

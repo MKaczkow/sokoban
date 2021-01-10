@@ -2,6 +2,7 @@ package elkaproj;
 
 /**
  * A tagged union of 2 types.
+ *
  * @param <T1> First type of the union.
  * @param <T2> Second type of the union.
  */
@@ -14,6 +15,7 @@ public class Union<T1, T2> {
 
     /**
      * Creates a new union of specified types and with specified value.
+     *
      * @param type1 First type of the union.
      * @param type2 Second type of the union.
      * @param value Value to contain in the union. Must be of a type assignable to either T1 or T2, but not both.
@@ -40,6 +42,7 @@ public class Union<T1, T2> {
 
     /**
      * Gets the first type of the union.
+     *
      * @return First type of the union.
      */
     public Class<T1> getType1() {
@@ -48,6 +51,7 @@ public class Union<T1, T2> {
 
     /**
      * Gets the second type of the union.
+     *
      * @return Second type of the union.
      */
     public Class<T2> getType2() {
@@ -56,6 +60,7 @@ public class Union<T1, T2> {
 
     /**
      * Gets whether contained type is of type T1.
+     *
      * @return Whether contained type is of type T1.
      */
     public boolean isType1() {
@@ -64,6 +69,7 @@ public class Union<T1, T2> {
 
     /**
      * Gets whether contained type is of type T2.
+     *
      * @return Whether contained type is of type T2.
      */
     public boolean isType2() {
@@ -72,6 +78,7 @@ public class Union<T1, T2> {
 
     /**
      * Unwraps the contained value as value of type T1, if possible.
+     *
      * @return Unwrapped value.
      * @throws IllegalAccessException Value was not a value of type T1.
      */
@@ -79,11 +86,12 @@ public class Union<T1, T2> {
         if (this.actualType != this.type1)
             throw new IllegalAccessException("Contained value is not of type T1.");
 
-        return (T1)this.value;
+        return (T1) this.value;
     }
 
     /**
      * Unwraps the contained value as value of type T2, if possible.
+     *
      * @return Unwrapped value.
      * @throws IllegalAccessException Value was not a value of type T2.
      */
@@ -91,6 +99,6 @@ public class Union<T1, T2> {
         if (this.actualType != this.type2)
             throw new IllegalAccessException("Contained value is not of type T2.");
 
-        return (T2)this.value;
+        return (T2) this.value;
     }
 }

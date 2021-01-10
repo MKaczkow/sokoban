@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  */
 public class GuiPlayerNameView extends JPanel implements KeyListener {
 
-    private static final Set<Character> ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".chars().mapToObj(x -> (char)x).collect(Collectors.toSet());
+    private static final Set<Character> ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".chars().mapToObj(x -> (char) x).collect(Collectors.toSet());
 
     private final char[] playerName = "\0\0\0\0\0".toCharArray();
     private final HashMap<String, JTextField> textFields = new HashMap<>();
@@ -24,6 +24,7 @@ public class GuiPlayerNameView extends JPanel implements KeyListener {
 
     /**
      * Initializes the new player view.
+     *
      * @param actionListener Listener to handle events.
      */
     public GuiPlayerNameView(ActionListener actionListener) {
@@ -98,6 +99,7 @@ public class GuiPlayerNameView extends JPanel implements KeyListener {
 
     /**
      * Computes the so-far entered player name.
+     *
      * @return Player-selected player name.
      */
     public String getPlayerName() {
@@ -117,10 +119,12 @@ public class GuiPlayerNameView extends JPanel implements KeyListener {
     }
 
     @Override
-    public void keyTyped(KeyEvent keyEvent) { }
+    public void keyTyped(KeyEvent keyEvent) {
+    }
 
     @Override
-    public void keyPressed(KeyEvent keyEvent) { }
+    public void keyPressed(KeyEvent keyEvent) {
+    }
 
     @Override
     public void keyReleased(KeyEvent keyEvent) {
@@ -150,17 +154,17 @@ public class GuiPlayerNameView extends JPanel implements KeyListener {
         }
 
         @Override
-        public void insertUpdate(DocumentEvent documentEvent){
+        public void insertUpdate(DocumentEvent documentEvent) {
             this.processUpdate();
         }
 
         @Override
-        public void removeUpdate(DocumentEvent documentEvent){
+        public void removeUpdate(DocumentEvent documentEvent) {
             this.processUpdate();
         }
 
         @Override
-        public void changedUpdate(DocumentEvent documentEvent){
+        public void changedUpdate(DocumentEvent documentEvent) {
             this.processUpdate();
         }
 

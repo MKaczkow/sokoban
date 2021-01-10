@@ -17,9 +17,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -56,6 +54,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
     /**
      * Initializes the game canvas.
+     *
      * @param gameController Controller, which handles the gameplay component itself.
      * @throws IOException Loading tile graphics failed.
      */
@@ -126,7 +125,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
             Dimensions tileStart = this.computeTileStart(tileSize);
 
             float animationOffsetPercent = this.computeAnimationOffset(currentTime);
-            int animationOffset = (int)(animationOffsetPercent * tileSize);
+            int animationOffset = (int) (animationOffsetPercent * tileSize);
 
             Dimension size = this.getSize();
 
@@ -262,7 +261,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         if (tDelta >= this.animationDuration)
             return 1.0f;
 
-        return tDelta / (float)this.animationDuration;
+        return tDelta / (float) this.animationDuration;
     }
 
     private Dimensions computeTileStart(int tileSize) {

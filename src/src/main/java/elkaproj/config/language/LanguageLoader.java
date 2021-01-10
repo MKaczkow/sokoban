@@ -37,6 +37,7 @@ public class LanguageLoader {
 
     /**
      * Loads specified language.
+     *
      * @param code Language code of the language to load.
      * @return Loaded language.
      */
@@ -61,6 +62,7 @@ public class LanguageLoader {
 
     /**
      * Lists all available languages.
+     *
      * @return A list of available languages, as language codes.
      */
     public static Set<String> getAvailableLanguages() {

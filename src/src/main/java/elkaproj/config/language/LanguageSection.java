@@ -16,10 +16,11 @@ public class LanguageSection {
 
     /**
      * Creates a new language section with specified data.
-     * @param name Name of this section.
-     * @param values Values placed directly in this section.
+     *
+     * @param name     Name of this section.
+     * @param values   Values placed directly in this section.
      * @param sections Subsections of this section.
-     * @param parent Parent section of this section. Null if top-level section.
+     * @param parent   Parent section of this section. Null if top-level section.
      */
     public LanguageSection(String name, Map<String, String> values, Map<String, LanguageSection> sections, LanguageSection parent) {
         this.name = name;
@@ -30,6 +31,7 @@ public class LanguageSection {
 
     /**
      * Gets the name of this section.
+     *
      * @return Name of this section.
      */
     public String getName() {
@@ -38,6 +40,7 @@ public class LanguageSection {
 
     /**
      * Gets a direct child of this section. Can be a section or value.
+     *
      * @param name Name of section or value to get.
      * @return Value/Section union containing retrieved child.
      */
@@ -59,6 +62,7 @@ public class LanguageSection {
 
     /**
      * Gets a value at specified path. Can be multi-level path.
+     *
      * @param path Path of the item to retrieve.
      * @return Retrieved value.
      */
@@ -89,6 +93,7 @@ public class LanguageSection {
 
     /**
      * Gets the parent section of this section.
+     *
      * @return Parent section or null if this is top-level section.
      */
     public LanguageSection getParent() {

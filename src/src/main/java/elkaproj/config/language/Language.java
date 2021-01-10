@@ -20,6 +20,7 @@ public class Language {
 
     /**
      * Gets the display name of the language.
+     *
      * @return Display name of the language.
      */
     public String getName() {
@@ -28,6 +29,7 @@ public class Language {
 
     /**
      * Gets a section by name,
+     *
      * @param name Name of the section to retrieve.
      * @return Retrieved section.
      */
@@ -46,6 +48,7 @@ public class Language {
 
     /**
      * Gets a value at specified path. Can be multi-level path.
+     *
      * @param path Path of the item to retrieve.
      * @return Retrieved value.
      */

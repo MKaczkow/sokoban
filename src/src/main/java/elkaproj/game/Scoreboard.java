@@ -1,27 +1,26 @@
 package elkaproj.game;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import javax.swing.*;
-import javax.swing.event.*;
 import java.util.ArrayList;
-import java.util.Vector;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Vector;
 
 /**
  * Implements scoreboard
  */
 
-public class Scoreboard extends JPanel{
+public class Scoreboard extends JPanel {
 
-    private class Score{
+    private class Score {
         private String name;
         private int points;
 
-        public Score(String name, int points){
-            this.name=name;
-            this.points=points;
+        public Score(String name, int points) {
+            this.name = name;
+            this.points = points;
         }
 
         public String getName() {
@@ -29,7 +28,7 @@ public class Scoreboard extends JPanel{
         }
 
         public int getPoints() {
-                return points;
+            return points;
         }
 
     }
@@ -42,13 +41,14 @@ public class Scoreboard extends JPanel{
 
     /**
      * Initiates scoreboard
-     * @param panelWidth width of panel
-     * @param panelHeight heigth of panel
+     *
+     * @param panelWidth   width of panel
+     * @param panelHeight  heigth of panel
      * @param menuListener controller listener
      */
 
     public Scoreboard(int panelWidth, int panelHeight,
-                          ActionListener menuListener) {
+                      ActionListener menuListener) {
 
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(panelWidth, panelHeight));
@@ -57,7 +57,7 @@ public class Scoreboard extends JPanel{
         add(makeScoreboardLabel(), BorderLayout.NORTH);
         add(makeBackToMenuButton(menuListener), BorderLayout.SOUTH);
         setVisible(true);
-        }
+    }
 
     /**
      * Shows displays scoreboard as dialog window.
@@ -69,6 +69,7 @@ public class Scoreboard extends JPanel{
 
     /**
      * Initiates table of scores
+     *
      * @return table of scores
      */
 
@@ -90,15 +91,16 @@ public class Scoreboard extends JPanel{
         colLabels.addElement("Nick");
         colLabels.addElement("Wynik");
 
-            JTable highScoreLabel = new JTable(rowData, colLabels);
-            highScoreLabel.setEnabled(false);
-            highScoreLabel.getTableHeader().setReorderingAllowed(false);
+        JTable highScoreLabel = new JTable(rowData, colLabels);
+        highScoreLabel.setEnabled(false);
+        highScoreLabel.getTableHeader().setReorderingAllowed(false);
 
-            return highScoreLabel;
+        return highScoreLabel;
     }
 
     /**
      * Initiates return button
+     *
      * @param menuListener main menu listener
      * @return return button
      */
@@ -112,6 +114,7 @@ public class Scoreboard extends JPanel{
 
     /**
      * Initiates scoreboard label
+     *
      * @return scoreboard label
      */
     private JLabel makeScoreboardLabel() {
@@ -121,34 +124,32 @@ public class Scoreboard extends JPanel{
         highScoreLbl.setFont(new Font("Arial", Font.PLAIN, 15));
         return highScoreLbl;
     }
+
     /**
      * Sorts list of scores
      */
-
-     private void sortList() {
+    private void sortList() {
         Collections.sort(ScoreList, new Comparator<Score>() {
-                public int compare(Score score, Score temp) {
-                    if(score.getPoints()<temp.getPoints()){
-                        return 1;
-                    }
-                    if(score.getPoints()>temp.getPoints())
-                    {
-                        return -1;
-                    }
-                    else
-                        return 0;
+            public int compare(Score score, Score temp) {
+                if (score.getPoints() < temp.getPoints()) {
+                    return 1;
                 }
-            });
-        }
+                if (score.getPoints() > temp.getPoints()) {
+                    return -1;
+                } else
+                    return 0;
+            }
+        });
+    }
 
-        /**
-         * Adds new score to lists
-         * @param Name nick
-         * @param Points number of points
-         */
-
-        private void addScore(String Name, int Points){
-            ScoreList.add(new Score(Name, Points));
-            sortList();
-        }
+    /**
+     * Adds new score to lists
+     *
+     * @param Name   nick
+     * @param Points number of points
+     */
+    private void addScore(String Name, int Points) {
+        ScoreList.add(new Score(Name, Points));
+        sortList();
+    }
 }

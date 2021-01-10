@@ -13,7 +13,7 @@ public class Dimensions {
      * Creates a new dimensions object, which represents width and height in arbitrary units in Cartesian coordinate
      * system.
      *
-     * @param width Width of the object this class represents the size of.
+     * @param width  Width of the object this class represents the size of.
      * @param height Height of the object this class represents the size of.
      */
     public Dimensions(int width, int height) {
@@ -23,6 +23,7 @@ public class Dimensions {
 
     /**
      * Gets the width represented by this dimensions object.
+     *
      * @return Width represented by this dimensions object.
      */
     public int getWidth() {
@@ -31,6 +32,7 @@ public class Dimensions {
 
     /**
      * Gets the height represented by this dimensions object.
+     *
      * @return Height represented by this dimensions object.
      */
     public int getHeight() {
@@ -39,6 +41,7 @@ public class Dimensions {
 
     /**
      * Comprares this coordinates object to another one.
+     *
      * @param o Another object to compare to.
      * @return Whether the two objects are equal.
      */
@@ -52,6 +55,7 @@ public class Dimensions {
 
     /**
      * Computes a hash code for this object instance.
+     *
      * @return Computed hash code.
      */
     @Override
@@ -68,8 +72,9 @@ public class Dimensions {
 
         /**
          * Creates a new coordinate delta from given coordinates.
+         *
          * @param from Source coordinates.
-         * @param to Target coordinates.
+         * @param to   Target coordinates.
          */
         public Delta(Dimensions from, Dimensions to) {
             this.from = from;
@@ -78,6 +83,7 @@ public class Dimensions {
 
         /**
          * Gets the source component of this delta.
+         *
          * @return Source component of this delta.
          */
         public Dimensions getFrom() {
@@ -86,6 +92,7 @@ public class Dimensions {
 
         /**
          * Gets the target component of this delta.
+         *
          * @return Target component of this delta.
          */
         public Dimensions getTo() {
@@ -94,6 +101,7 @@ public class Dimensions {
 
         /**
          * Gets the X change of this delta.
+         *
          * @return X change of this delta.
          */
         public int getXChange() {
@@ -102,6 +110,7 @@ public class Dimensions {
 
         /**
          * Gets the Y change of this delta.
+         *
          * @return Y change of this delta.
          */
         public int getYChange() {
@@ -110,6 +119,7 @@ public class Dimensions {
 
         /**
          * Gets the overall magnitude of this change.
+         *
          * @return Magnitude of this change.
          */
         public double getMagnitude() {
@@ -118,6 +128,7 @@ public class Dimensions {
 
         /**
          * Checks whether this delta is a match for given target.
+         *
          * @param target Target to check against.
          * @return Whether the end coordinates of this delta match the desired target.
          */
@@ -127,6 +138,7 @@ public class Dimensions {
 
         /**
          * Compares this delta to another one.
+         *
          * @param o Another object to compare to.
          * @return Whether the objects are equal.
          */
@@ -140,6 +152,7 @@ public class Dimensions {
 
         /**
          * Computes a hash code for this delta.
+         *
          * @return Computed hash code.
          */
         @Override

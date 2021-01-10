@@ -14,7 +14,7 @@ import java.util.EnumSet;
  *             <li>
  *                 Active bonuses - A comma-separated list of STRENGTH, PULL, GHOST - decides which bonuses are active
  *                 in-game
-*              </li>
+ *              </li>
  *             <li>
  *                 Life recovery level count - How many levels in a row must a player complete without a reset to
  *                 regain a life

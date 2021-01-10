@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 /**
  * Parses command line arguments and produces objects of specified type T.
+ *
  * @param <T> Type of objects this parser produces.
  */
 public class CommandLineParser<T> {
@@ -17,6 +18,7 @@ public class CommandLineParser<T> {
 
     /**
      * Creates a new command line parser for specified type.
+     *
      * @param klass Type of objects this parser will produce.
      */
     public CommandLineParser(Class<T> klass) {
@@ -26,6 +28,7 @@ public class CommandLineParser<T> {
 
     /**
      * Parses supplied command line arguments, and returns a command line options object of type T.
+     *
      * @param args Arguments to parse.
      * @return Populated command line options object.
      * @throws IllegalArgumentException Parsing failed due to invalid argument, invalid value, or other forms of invalid input.
@@ -165,7 +168,7 @@ public class CommandLineParser<T> {
     private void setValueFor(Object value, Argument arg, T target, String name) {
         try {
             if (arg.type == CommandLineArgumentType.NUMBER) {
-                value = Integer.valueOf((String)value);
+                value = Integer.valueOf((String) value);
             }
 
             arg.field.set(target, value);
@@ -176,6 +179,7 @@ public class CommandLineParser<T> {
 
     /**
      * Prints out help for the specified type, to the specified output.
+     *
      * @param output Output to write help to. Typically {@link System#out}.
      */
     public void printHelp(PrintStream output) {

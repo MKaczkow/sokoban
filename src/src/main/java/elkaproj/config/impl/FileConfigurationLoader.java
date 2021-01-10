@@ -30,6 +30,7 @@ import java.util.List;
  *     <li>timers-active - {@link IConfiguration#areTimersActive()}</li>
  *     <li>level-pack - {@link IConfiguration#getLevelPackId()}</li>
  * </ul>
+ *
  * @see IConfigurationLoader
  * @see IConfiguration
  */
@@ -40,6 +41,7 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
 
     /**
      * Creates a new configuration loader from given file stream.
+     *
      * @param file File to read configuration from.
      * @throws FileNotFoundException Configuration file was not found.
      */
@@ -50,6 +52,7 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
 
     /**
      * Loads a configuration object and returns it.
+     *
      * @return Loaded configuration object.
      * @see IConfiguration
      */
@@ -67,6 +70,7 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
 
     /**
      * Gets the file-based level pack loader.
+     *
      * @return File level pack loader.
      */
     @Override
@@ -77,6 +81,7 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
 
     /**
      * Closes this reader and the underlying stream.
+     *
      * @throws IOException An exception occurred while closing the underlying stream.
      */
     @Override
@@ -86,36 +91,38 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
 
     /**
      * Implements an XML-bindable configuration object. For more information see {@link IConfiguration}.
+     *
      * @see IConfiguration
      */
-    @XmlRootElement(name="configuration")
+    @XmlRootElement(name = "configuration")
     @XmlAccessorType(XmlAccessType.FIELD)
     private static class XmlFileConfiguration implements IConfiguration {
 
-        @XmlElement(name="level-pack")
+        @XmlElement(name = "level-pack")
         private String levelPackId;
 
-        @XmlElement(name="max-lives")
+        @XmlElement(name = "max-lives")
         public int maxLives;
 
-        @XmlElement(name="start-lives")
+        @XmlElement(name = "start-lives")
         public int startLives;
 
-        @XmlElement(name="life-recovery-threshold")
+        @XmlElement(name = "life-recovery-threshold")
         public int lifeRecoveryThreshold;
 
-        @XmlElement(name="life-recovery-count")
+        @XmlElement(name = "life-recovery-count")
         public int lifeRecoveryCount;
 
-        @XmlElement(name="timers-active")
+        @XmlElement(name = "timers-active")
         private boolean timersActive;
 
-        @XmlElement(name="active-powerup")
+        @XmlElement(name = "active-powerup")
         private List<String> activePowerups;
 
         private transient EnumSet<GamePowerup> activePowerupsES;
 
-        private XmlFileConfiguration() { }
+        private XmlFileConfiguration() {
+        }
 
         @Override
         public String getLevelPackId() {

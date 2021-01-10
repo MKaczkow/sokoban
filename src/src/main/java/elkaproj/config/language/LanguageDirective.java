@@ -14,6 +14,7 @@ public @interface LanguageDirective {
 
     /**
      * Gets the name of the directive.
+     *
      * @return Name of the directive.
      */
     public String value();

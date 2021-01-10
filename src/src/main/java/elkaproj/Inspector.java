@@ -21,6 +21,7 @@ public class Inspector {
 
     /**
      * Inspects an object.
+     *
      * @param o Object to inspect.
      */
     public void inspect(Object o) {

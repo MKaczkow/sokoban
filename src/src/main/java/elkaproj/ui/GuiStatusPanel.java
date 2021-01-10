@@ -25,9 +25,10 @@ public class GuiStatusPanel extends JPanel implements IGameLifecycleHandler {
 
     /**
      * Initializes the status panel.
+     *
      * @param gameController Game controller.
-     * @param parent Size of the parent container.
-     * @param language Language to use when localizing strings.
+     * @param parent         Size of the parent container.
+     * @param language       Language to use when localizing strings.
      */
     public GuiStatusPanel(GameController gameController, Dimension parent, Language language) {
         super();

@@ -8,7 +8,6 @@ import elkaproj.config.IConfigurationLoader;
 import elkaproj.config.ILevelPackLoader;
 
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -35,6 +34,7 @@ import java.util.List;
  *     <li>timers-active - {@link IConfiguration#areTimersActive()}</li>
  *     <li>level-pack - {@link IConfiguration#getLevelPackId()}</li>
  * </ul>
+ *
  * @see IConfigurationLoader
  * @see IConfiguration
  */
@@ -44,6 +44,7 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
 
     /**
      * Creates a new configuration loader from given URL endpoint.
+     *
      * @param endpointBase URL endpoint to load configuration from.
      */
     public HttpConfigurationLoader(URL endpointBase) {
@@ -52,6 +53,7 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
 
     /**
      * Loads a configuration object and returns it.
+     *
      * @return Loaded configuration object.
      * @see IConfiguration
      */
@@ -76,6 +78,7 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
 
     /**
      * Gets the HTTP-based level pack loader.
+     *
      * @return HTTP level pack loader.
      */
     @Override
@@ -91,6 +94,7 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
 
     /**
      * Closes this reader.
+     *
      * @throws IOException An exception occurred while closing the reader.
      */
     @Override
@@ -109,36 +113,38 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
 
     /**
      * Implements an XML-bindable configuration object. For more information see {@link IConfiguration}.
+     *
      * @see IConfiguration
      */
-    @XmlRootElement(name="configuration")
+    @XmlRootElement(name = "configuration")
     @XmlAccessorType(XmlAccessType.FIELD)
     private static class XmlHttpConfiguration implements IConfiguration {
 
-        @XmlElement(name="level-pack")
+        @XmlElement(name = "level-pack")
         private String levelPackId;
 
-        @XmlElement(name="max-lives")
+        @XmlElement(name = "max-lives")
         public int maxLives;
 
-        @XmlElement(name="start-lives")
+        @XmlElement(name = "start-lives")
         public int startLives;
 
-        @XmlElement(name="life-recovery-threshold")
+        @XmlElement(name = "life-recovery-threshold")
         public int lifeRecoveryThreshold;
 
-        @XmlElement(name="life-recovery-count")
+        @XmlElement(name = "life-recovery-count")
         public int lifeRecoveryCount;
 
-        @XmlElement(name="timers-active")
+        @XmlElement(name = "timers-active")
         private boolean timersActive;
 
-        @XmlElement(name="active-powerup")
+        @XmlElement(name = "active-powerup")
         private List<String> activePowerups;
 
         private transient EnumSet<GamePowerup> activePowerupsES;
 
-        private XmlHttpConfiguration() { }
+        private XmlHttpConfiguration() {
+        }
 
         @Override
         public String getLevelPackId() {

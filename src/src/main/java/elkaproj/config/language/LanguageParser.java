@@ -28,6 +28,7 @@ public class LanguageParser implements Closeable {
 
     /**
      * Creates a new parser, which will parse supplied stream.
+     *
      * @param langFile Stream with language file to parse.
      * @throws UnsupportedEncodingException UTF-8 is not supported on this platform.
      */
@@ -37,10 +38,11 @@ public class LanguageParser implements Closeable {
 
     /**
      * Parse the stream and return the parsed language.
+     *
      * @return Parsed language.
-     * @throws IOException An error occurred while reading the definition file.
+     * @throws IOException              An error occurred while reading the definition file.
      * @throws IllegalArgumentException Invalid language data was encountered.
-     * @throws IllegalStateException Invalid language data was encountered.
+     * @throws IllegalStateException    Invalid language data was encountered.
      */
     public Language parse() throws IOException, IllegalArgumentException, IllegalStateException {
         Language lang;

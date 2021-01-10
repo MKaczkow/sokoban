@@ -19,6 +19,7 @@ public enum GamePowerup {
 
     /**
      * Returns the display name of the powerup.
+     *
      * @return Display name of the powerup.
      */
     public String getName() {
@@ -27,6 +28,7 @@ public enum GamePowerup {
 
     /**
      * Returns the ID of the powerup.
+     *
      * @return ID of the powerup.
      */
     public String getId() {
@@ -35,6 +37,7 @@ public enum GamePowerup {
 
     /**
      * Returns the in-game description of the powerup.
+     *
      * @return In-game description of the powerup.
      */
     public String getDescription() {

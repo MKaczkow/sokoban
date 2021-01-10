@@ -15,6 +15,7 @@ public class GuiMenuBar extends JMenuBar implements IGameLifecycleHandler {
 
     /**
      * Creates a new menu bar for the game.
+     *
      * @param actionListener Listener handling this menu's action events.
      * @param gameController Game controller to handle certain events from.
      */

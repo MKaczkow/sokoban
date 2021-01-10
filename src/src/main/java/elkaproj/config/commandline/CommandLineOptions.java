@@ -20,10 +20,12 @@ public class CommandLineOptions {
     @CommandLineArgument(name = "language", shorthand = 'l', type = CommandLineArgumentType.STRING, defaultValue = "pl-PL", helpText = "UI language.")
     private String language;
 
-    public CommandLineOptions() { }
+    public CommandLineOptions() {
+    }
 
     /**
      * Gets whether to display help.
+     *
      * @return Whether to display help.
      */
     public boolean isHelp() {
@@ -32,6 +34,7 @@ public class CommandLineOptions {
 
     /**
      * Gets whether to write detailed debug information.
+     *
      * @return Whether to write detailed debug information.
      */
     public boolean isDebug() {
@@ -40,6 +43,7 @@ public class CommandLineOptions {
 
     /**
      * Gets whether to connect to an online server to load configuration data.
+     *
      * @return Whether to connect to an online server to load configuration data.
      */
     public boolean useOnline() {
@@ -48,6 +52,7 @@ public class CommandLineOptions {
 
     /**
      * Gets the address of the online configuration endpoint.
+     *
      * @return Address of online configuration endpoint.
      */
     public String getOnlineEndpoint() {
@@ -56,6 +61,7 @@ public class CommandLineOptions {
 
     /**
      * Gets the interface language code.
+     *
      * @return Interface language code.
      */
     public String getLanguage() {
