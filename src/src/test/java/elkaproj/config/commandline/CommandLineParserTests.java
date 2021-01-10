@@ -1,5 +1,6 @@
 package elkaproj.config.commandline;
 
+import elkaproj.CommandLineOptions;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -156,7 +157,7 @@ public class CommandLineParserTests {
         Assert.assertTrue(opts.isDebug());
         Assert.assertTrue(opts.isHelp());
         Assert.assertTrue(opts.useOnline());
-        Assert.assertEquals("https://static.emzi0767.com/misc/eiti/proze/config", opts.getOnlineEndpoint());
+        Assert.assertEquals("https://proze.emzi0767.com/", opts.getOnlineEndpoint());
         Assert.assertEquals("pl-PL", opts.getLanguage());
     }
 }

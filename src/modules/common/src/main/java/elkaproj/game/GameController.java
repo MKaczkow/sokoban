@@ -1,9 +1,9 @@
 package elkaproj.game;
 
 import elkaproj.DebugWriter;
+import elkaproj.Dimensions;
 import elkaproj.config.*;
 import elkaproj.config.GamePowerup;
-import elkaproj.game.GameClock;
 
 import java.util.ArrayList;
 import java.util.HashSet;

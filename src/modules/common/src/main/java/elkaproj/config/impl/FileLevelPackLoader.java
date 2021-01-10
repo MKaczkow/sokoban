@@ -1,5 +1,6 @@
 package elkaproj.config.impl;
 
+import elkaproj.Dimensions;
 import elkaproj.config.*;
 
 import javax.xml.bind.JAXBContext;

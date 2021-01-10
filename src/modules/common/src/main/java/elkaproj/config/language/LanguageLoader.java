@@ -24,12 +24,15 @@ public class LanguageLoader {
     private static final String LANGUAGE_FILE_PATTERN = "strings.%s.txt";
 
     private final Set<String> availableLanguages;
+    private final Class<?> resourceClass;
 
     /**
      * Creates a new language loader.
+     * @param resourceClass Class to use for loading resources.
      */
-    public LanguageLoader() {
-        this.availableLanguages = getAvailableLanguages();
+    public LanguageLoader(Class<?> resourceClass) {
+        this.resourceClass = resourceClass;
+        this.availableLanguages = this.getAvailableLanguages();
         for (String langCode : this.availableLanguages) {
             DebugWriter.INSTANCE.logMessage("LANG-PRSR", "Available language: %s", langCode);
         }
@@ -47,7 +50,7 @@ public class LanguageLoader {
 
         String languageFileName = String.format(LANGUAGE_FILE_PATTERN, code);
         try {
-            InputStream languageFile = LanguageLoader.class.getResourceAsStream("/" + languageFileName);
+            InputStream languageFile = this.resourceClass.getResourceAsStream("/" + languageFileName);
             try (LanguageParser parser = new LanguageParser(languageFile)) {
                 return parser.parse();
             }
@@ -65,10 +68,10 @@ public class LanguageLoader {
      *
      * @return A list of available languages, as language codes.
      */
-    public static Set<String> getAvailableLanguages() {
+    public Set<String> getAvailableLanguages() {
         HashSet<String> languages = new HashSet<>();
 
-        File jarFile = new File(LanguageLoader.class
+        File jarFile = new File(this.resourceClass
                 .getProtectionDomain()
                 .getCodeSource()
                 .getLocation()
@@ -96,7 +99,7 @@ public class LanguageLoader {
         } else { // classpath directory
             DebugWriter.INSTANCE.logMessage("LANG", "Using classpath scanner");
 
-            URL url = LanguageLoader.class.getResource("/.res");
+            URL url = this.resourceClass.getResource("/.res");
             if (url != null) {
                 try {
                     final File root = new File(url.toURI()).getParentFile();

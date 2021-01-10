@@ -1,7 +1,7 @@
 package elkaproj.config.impl;
 
+import elkaproj.Common;
 import elkaproj.DebugWriter;
-import elkaproj.Entry;
 import elkaproj.config.GamePowerup;
 import elkaproj.config.IConfiguration;
 import elkaproj.config.IConfigurationLoader;
@@ -66,7 +66,7 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
             Unmarshaller jaxb = jaxbctx.createUnmarshaller();
 
             URLConnection con = url.openConnection();
-            con.setRequestProperty("User-Agent", Entry.USER_AGENT);
+            con.setRequestProperty("User-Agent", Common.USER_AGENT);
             try (InputStream is = con.getInputStream()) {
                 return (IConfiguration) jaxb.unmarshal(is);
             }

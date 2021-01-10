@@ -1,6 +1,6 @@
 package elkaproj.game;
 
-import elkaproj.config.Dimensions;
+import elkaproj.Dimensions;
 import elkaproj.config.ILevel;
 import elkaproj.config.LevelTile;
 

@@ -1,2 +1,2 @@
 rootProject.name = 'Sokoban'
-
+include ":modules:common", ":modules:http-server"

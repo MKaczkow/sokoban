@@ -4,7 +4,6 @@ import elkaproj.config.ConfigurationValidator;
 import elkaproj.config.IConfiguration;
 import elkaproj.config.ILevelPack;
 import elkaproj.config.ILevelPackLoader;
-import elkaproj.config.commandline.CommandLineOptions;
 import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.config.impl.FileConfigurationLoader;
 import elkaproj.config.impl.HttpConfigurationLoader;
@@ -25,11 +24,6 @@ import java.util.Enumeration;
  * Program entrypoint.
  */
 public class Entry {
-
-    /**
-     * User agent for HTTP requests.
-     */
-    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66";
 
     /**
      * Regular variant of the UI font.
@@ -76,8 +70,6 @@ public class Entry {
         IConfiguration config = null;
         ILevelPack levelPack = null;
         if (!opts.useOnline()) {
-            System.setProperty("http.agent", USER_AGENT);
-
             File f = new File("config", "config.xml");
             try (FileConfigurationLoader loader = new FileConfigurationLoader(f)) {
                 config = loader.load();
@@ -114,7 +106,7 @@ public class Entry {
         inspector.inspect(levelPack);
 
         // load languages
-        LanguageLoader languageLoader = new LanguageLoader();
+        LanguageLoader languageLoader = new LanguageLoader(Entry.class);
         Language uiLang = null;
         try {
             uiLang = languageLoader.loadLanguage(opts.getLanguage());

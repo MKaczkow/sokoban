@@ -2,7 +2,7 @@ package elkaproj.ui;
 
 import elkaproj.DebugWriter;
 import elkaproj.Entry;
-import elkaproj.config.Dimensions;
+import elkaproj.Dimensions;
 import elkaproj.config.ILevel;
 import elkaproj.config.LevelTile;
 import elkaproj.game.GameController;

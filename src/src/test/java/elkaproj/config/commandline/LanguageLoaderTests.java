@@ -9,7 +9,7 @@ public class LanguageLoaderTests {
 
     @Test
     public void testLanguageLoading() {
-        LanguageLoader languageLoader = new LanguageLoader();
+        LanguageLoader languageLoader = new LanguageLoader(LanguageLoaderTests.class);
         Language language = languageLoader.loadLanguage("pl-PL");
 
         Assert.assertEquals("Polski", language.getName());

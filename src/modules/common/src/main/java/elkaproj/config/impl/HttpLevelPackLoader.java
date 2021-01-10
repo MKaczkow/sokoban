@@ -1,6 +1,7 @@
 package elkaproj.config.impl;
 
-import elkaproj.Entry;
+import elkaproj.Common;
+import elkaproj.Dimensions;
 import elkaproj.config.*;
 
 import javax.xml.bind.JAXBContext;
@@ -53,7 +54,7 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
             Unmarshaller jaxb = jaxbctx.createUnmarshaller();
 
             URLConnection con = meta.openConnection();
-            con.setRequestProperty("User-Agent", Entry.USER_AGENT);
+            con.setRequestProperty("User-Agent", Common.USER_AGENT);
             try (InputStream is = con.getInputStream()) {
                 xlpm = (XmlHttpLevelPackMeta) jaxb.unmarshal(is);
             }
@@ -79,7 +80,7 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
         ArrayList<String> lines = new ArrayList<>();
 
         URLConnection con = lvldata.openConnection();
-        con.setRequestProperty("User-Agent", Entry.USER_AGENT);
+        con.setRequestProperty("User-Agent", Common.USER_AGENT);
         try (BufferedReader lvlin = new BufferedReader(
                 new InputStreamReader(
                         con.getInputStream(), StandardCharsets.UTF_8.name()))) {

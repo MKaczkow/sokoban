@@ -1,5 +1,7 @@
 package elkaproj.config;
 
+import elkaproj.Dimensions;
+
 /**
  * Provides information about a singular game level. This is an abstraction for level objects meant to establish a
  * common base.

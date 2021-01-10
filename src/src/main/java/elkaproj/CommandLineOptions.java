@@ -1,4 +1,7 @@
-package elkaproj.config.commandline;
+package elkaproj;
+
+import elkaproj.config.commandline.CommandLineArgument;
+import elkaproj.config.commandline.CommandLineArgumentType;
 
 /**
  * Represents commandline options passed to the program.
@@ -14,7 +17,7 @@ public class CommandLineOptions {
     @CommandLineArgument(name = "online", shorthand = 'o', type = CommandLineArgumentType.FLAG, helpText = "Enables online mode. This causes the game to pull configuration data from the specified server.")
     private boolean online;
 
-    @CommandLineArgument(name = "online-endpoint", shorthand = 's', type = CommandLineArgumentType.STRING, defaultValue = "http://localhost/proze", helpText = "HTTP endpoint to pull configuration data from.")
+    @CommandLineArgument(name = "online-endpoint", shorthand = 's', type = CommandLineArgumentType.STRING, defaultValue = "https://proze.emzi0767.com/", helpText = "HTTP endpoint to pull configuration data from.")
     private String onlineEndpoint;
 
     @CommandLineArgument(name = "language", shorthand = 'l', type = CommandLineArgumentType.STRING, defaultValue = "pl-PL", helpText = "UI language.")

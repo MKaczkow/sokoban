@@ -1,4 +1,4 @@
-package elkaproj.config;
+package elkaproj;
 
 import java.util.Objects;
 

@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'idea'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'com.github.johnrengelman.shadow'
 }
 
 group 'elkaproj'
@@ -20,13 +20,9 @@ dependencies {
     compile "com.sun.xml.bind:jaxb-core:2.3.0"
     compile "com.sun.xml.bind:jaxb-impl:2.3.0"
     compile "com.sun.activation:javax.activation:1.2.0"
-
-    compile project(":modules:common")
-
-    testCompile "junit:junit:4.12"
 }
 
-mainClassName = 'elkaproj.Entry'
+mainClassName = 'elkaproj.httpserver.Entry'
 
 jar {
     manifest {
