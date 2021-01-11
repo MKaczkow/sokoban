@@ -17,6 +17,9 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+/**
+ * Sends level data to clients.
+ */
 @Handler("/levels/data")
 public class GameLevelDataHandler implements HttpHandler {
 
