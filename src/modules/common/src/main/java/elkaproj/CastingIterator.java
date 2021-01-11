@@ -5,8 +5,8 @@ import java.util.Iterator;
 /**
  * Casts a sequence because apparently Java can't.
  *
- * @param <T> Original type.
- * @param <U> Cast type.
+ * @param <T> Cast type.
+ * @param <U> Original type.
  */
 public class CastingIterator<T, U extends T> implements Iterator<T> {
 
