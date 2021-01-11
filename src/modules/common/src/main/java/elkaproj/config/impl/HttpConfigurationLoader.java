@@ -8,22 +8,12 @@ import elkaproj.config.IConfigurationLoader;
 import elkaproj.config.ILevelPackLoader;
 
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.EnumSet;
-import java.util.List;
 
 /**
  * Loads configuration from HTTP endpoints. The configuration uses XML format. The configuration is case-sensitive, and
@@ -66,7 +56,7 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
         try {
             URL url = new URL(this.endpointBase, Common.appendPath(this.endpointBase.getPath(), "configuration"));
 
-            JAXBContext jaxbctx = JAXBContext.newInstance(XmlHttpConfiguration.class);
+            JAXBContext jaxbctx = JAXBContext.newInstance(XmlConfigImpl.XmlConfiguration.class);
             Unmarshaller jaxb = jaxbctx.createUnmarshaller();
 
             URLConnection con = url.openConnection();
@@ -103,94 +93,5 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
      */
     @Override
     public void close() throws IOException {
-    }
-
-    /**
-     * Implements an XML-bindable configuration object. For more information see {@link IConfiguration}.
-     *
-     * @see IConfiguration
-     */
-    @XmlRootElement(name = "configuration")
-    @XmlAccessorType(XmlAccessType.FIELD)
-    private static class XmlHttpConfiguration implements IConfiguration {
-
-        @XmlElement(name = "level-pack")
-        private String levelPackId;
-
-        @XmlElement(name = "max-lives")
-        public int maxLives;
-
-        @XmlElement(name = "start-lives")
-        public int startLives;
-
-        @XmlElement(name = "life-recovery-threshold")
-        public int lifeRecoveryThreshold;
-
-        @XmlElement(name = "life-recovery-count")
-        public int lifeRecoveryCount;
-
-        @XmlElement(name = "timers-active")
-        private boolean timersActive;
-
-        @XmlElement(name = "active-powerup")
-        private List<String> activePowerups;
-
-        private transient EnumSet<GamePowerup> activePowerupsES;
-
-        private XmlHttpConfiguration() {
-        }
-
-        @Override
-        public String getLevelPackId() {
-            return this.levelPackId;
-        }
-
-        @Override
-        public int getMaxLives() {
-            return this.maxLives;
-        }
-
-        @Override
-        public int getStartingLives() {
-            return this.startLives;
-        }
-
-        @Override
-        public int getLifeRecoveryThreshold() {
-            return this.lifeRecoveryThreshold;
-        }
-
-        @Override
-        public int getLifeRecoveryCount() {
-            return this.lifeRecoveryCount;
-        }
-
-        @Override
-        public boolean areTimersActive() {
-            return this.timersActive;
-        }
-
-        @Override
-        public EnumSet<GamePowerup> getActivePowerups() {
-            if (this.activePowerupsES != null)
-                return this.activePowerupsES;
-
-            EnumSet<GamePowerup> powerups = EnumSet.noneOf(GamePowerup.class);
-            for (String s : this.activePowerups) {
-                powerups.add(GamePowerup.valueOf(s));
-            }
-
-            return this.activePowerupsES = powerups;
-        }
-
-        @Override
-        public void serialize(OutputStream os) throws IOException, JAXBException {
-            JAXBContext jaxbctx = JAXBContext.newInstance(this.getClass());
-            Marshaller jaxb = jaxbctx.createMarshaller();
-            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                jaxb.marshal(this, baos);
-                os.write(baos.toByteArray());
-            }
-        }
     }
 }

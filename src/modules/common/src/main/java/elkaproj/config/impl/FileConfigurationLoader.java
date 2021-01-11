@@ -8,15 +8,11 @@ import elkaproj.config.ILevelPackLoader;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import java.io.*;
-import java.util.EnumSet;
-import java.util.List;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * Loads configuration from file streams. The configuration uses XML format. The configuration is case-sensitive, and
@@ -58,7 +54,7 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
     @Override
     public IConfiguration load() {
         try {
-            JAXBContext jaxbctx = JAXBContext.newInstance(XmlFileConfiguration.class);
+            JAXBContext jaxbctx = JAXBContext.newInstance(XmlConfigImpl.XmlConfiguration.class);
             Unmarshaller jaxb = jaxbctx.createUnmarshaller();
             return (IConfiguration) jaxb.unmarshal(this.file);
         } catch (JAXBException e) {
@@ -85,94 +81,5 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
      */
     @Override
     public void close() throws IOException {
-    }
-
-    /**
-     * Implements an XML-bindable configuration object. For more information see {@link IConfiguration}.
-     *
-     * @see IConfiguration
-     */
-    @XmlRootElement(name = "configuration")
-    @XmlAccessorType(XmlAccessType.FIELD)
-    private static class XmlFileConfiguration implements IConfiguration {
-
-        @XmlElement(name = "level-pack")
-        private String levelPackId;
-
-        @XmlElement(name = "max-lives")
-        public int maxLives;
-
-        @XmlElement(name = "start-lives")
-        public int startLives;
-
-        @XmlElement(name = "life-recovery-threshold")
-        public int lifeRecoveryThreshold;
-
-        @XmlElement(name = "life-recovery-count")
-        public int lifeRecoveryCount;
-
-        @XmlElement(name = "timers-active")
-        private boolean timersActive;
-
-        @XmlElement(name = "active-powerup")
-        private List<String> activePowerups;
-
-        private transient EnumSet<GamePowerup> activePowerupsES;
-
-        private XmlFileConfiguration() {
-        }
-
-        @Override
-        public String getLevelPackId() {
-            return this.levelPackId;
-        }
-
-        @Override
-        public int getMaxLives() {
-            return this.maxLives;
-        }
-
-        @Override
-        public int getStartingLives() {
-            return this.startLives;
-        }
-
-        @Override
-        public int getLifeRecoveryThreshold() {
-            return this.lifeRecoveryThreshold;
-        }
-
-        @Override
-        public int getLifeRecoveryCount() {
-            return this.lifeRecoveryCount;
-        }
-
-        @Override
-        public boolean areTimersActive() {
-            return this.timersActive;
-        }
-
-        @Override
-        public EnumSet<GamePowerup> getActivePowerups() {
-            if (this.activePowerupsES != null)
-                return this.activePowerupsES;
-
-            EnumSet<GamePowerup> powerups = EnumSet.noneOf(GamePowerup.class);
-            for (String s : this.activePowerups) {
-                powerups.add(GamePowerup.valueOf(s));
-            }
-
-            return this.activePowerupsES = powerups;
-        }
-
-        @Override
-        public void serialize(OutputStream os) throws IOException, JAXBException {
-            JAXBContext jaxbctx = JAXBContext.newInstance(this.getClass());
-            Marshaller jaxb = jaxbctx.createMarshaller();
-            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                jaxb.marshal(this, baos);
-                os.write(baos.toByteArray());
-            }
-        }
     }
 }
