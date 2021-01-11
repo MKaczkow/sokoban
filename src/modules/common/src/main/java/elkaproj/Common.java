@@ -13,7 +13,7 @@ public class Common {
     /**
      * Appends paths.
      *
-     * @param base Base path to append to.
+     * @param base     Base path to append to.
      * @param appendix Path to append.
      * @return Concatenated path.
      */
