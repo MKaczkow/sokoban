@@ -6,11 +6,9 @@ import elkaproj.DebugWriter;
 import elkaproj.Inspector;
 import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.httpserver.handlers.Handler;
-import elkaproj.httpserver.handlers.TestHandler;
 import org.reflections.Reflections;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
