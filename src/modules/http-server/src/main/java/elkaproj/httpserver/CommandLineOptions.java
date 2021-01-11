@@ -23,6 +23,9 @@ public class CommandLineOptions {
     @CommandLineArgument(name = "config", shorthand = 'c', type = CommandLineArgumentType.STRING, defaultValue = "config.xml", helpText = "Configuration file to load DB config from.")
     private String configurationFile;
 
+    @CommandLineArgument(name = "game-data", shorthand = 'g', type = CommandLineArgumentType.STRING, defaultValue = "config", helpText = "Location of game's configuration data.")
+    private String gameData;
+
     public CommandLineOptions() {
     }
 
@@ -69,5 +72,14 @@ public class CommandLineOptions {
      */
     public String getConfigurationFile() {
         return this.configurationFile;
+    }
+
+    /**
+     * Gets the game data directory location.
+     *
+     * @return Path to game data directory.
+     */
+    public String getGameDataLocation() {
+        return this.gameData;
     }
 }

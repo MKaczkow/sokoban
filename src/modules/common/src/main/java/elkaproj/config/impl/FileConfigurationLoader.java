@@ -8,6 +8,7 @@ import elkaproj.config.ILevelPackLoader;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -36,7 +37,6 @@ import java.util.List;
  */
 public class FileConfigurationLoader implements IConfigurationLoader, Closeable {
 
-    private final FileInputStream inputStream;
     private final File file;
 
     /**
@@ -47,7 +47,6 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
      */
     public FileConfigurationLoader(File file) throws FileNotFoundException {
         this.file = file;
-        this.inputStream = new FileInputStream(file);
     }
 
     /**
@@ -61,7 +60,7 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
         try {
             JAXBContext jaxbctx = JAXBContext.newInstance(XmlFileConfiguration.class);
             Unmarshaller jaxb = jaxbctx.createUnmarshaller();
-            return (IConfiguration) jaxb.unmarshal(this.inputStream);
+            return (IConfiguration) jaxb.unmarshal(this.file);
         } catch (JAXBException e) {
             DebugWriter.INSTANCE.logError("LDR-FILE", e, "Error while loading file.");
             return null;
@@ -86,7 +85,6 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
      */
     @Override
     public void close() throws IOException {
-        this.inputStream.close();
     }
 
     /**
@@ -165,6 +163,16 @@ public class FileConfigurationLoader implements IConfigurationLoader, Closeable 
             }
 
             return this.activePowerupsES = powerups;
+        }
+
+        @Override
+        public void serialize(OutputStream os) throws IOException, JAXBException {
+            JAXBContext jaxbctx = JAXBContext.newInstance(this.getClass());
+            Marshaller jaxb = jaxbctx.createMarshaller();
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                jaxb.marshal(this, baos);
+                os.write(baos.toByteArray());
+            }
         }
     }
 }

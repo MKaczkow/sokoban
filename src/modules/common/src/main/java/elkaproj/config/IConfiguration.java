@@ -28,7 +28,7 @@ import java.util.EnumSet;
  *     </li>
  * </ul>
  */
-public interface IConfiguration {
+public interface IConfiguration extends IXmlSerializable {
     /**
      * Gets the ID of the currently-configured level pack the player will be playing.
      *

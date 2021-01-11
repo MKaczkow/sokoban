@@ -8,13 +8,17 @@ import elkaproj.config.IConfigurationLoader;
 import elkaproj.config.ILevelPackLoader;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -60,7 +64,7 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
     @Override
     public IConfiguration load() {
         try {
-            URL url = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "config.xml"));
+            URL url = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "configuration"));
 
             JAXBContext jaxbctx = JAXBContext.newInstance(XmlHttpConfiguration.class);
             Unmarshaller jaxb = jaxbctx.createUnmarshaller();
@@ -84,7 +88,7 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
     @Override
     public ILevelPackLoader getLevelPackLoader() {
         try {
-            URL url = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "maps"));
+            URL url = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "levels"));
             return new HttpLevelPackLoader(url);
         } catch (MalformedURLException ex) {
             DebugWriter.INSTANCE.logError("HTTP-LDR", ex, "Failed to construct HTTP level loader.");
@@ -187,6 +191,16 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
             }
 
             return this.activePowerupsES = powerups;
+        }
+
+        @Override
+        public void serialize(OutputStream os) throws IOException, JAXBException {
+            JAXBContext jaxbctx = JAXBContext.newInstance(this.getClass());
+            Marshaller jaxb = jaxbctx.createMarshaller();
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                jaxb.marshal(this, baos);
+                os.write(baos.toByteArray());
+            }
         }
     }
 }

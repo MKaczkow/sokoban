@@ -19,7 +19,7 @@ public class TestHandler implements HttpHandler {
     private final ServiceProvider serviceProvider;
     private final IService<TestService> testService;
 
-    public TestHandler(
+    private TestHandler(
             ServiceProvider serviceProvider,
             @Inject(TestService.class) IService<TestService> testService) {
         this.serviceProvider = serviceProvider;

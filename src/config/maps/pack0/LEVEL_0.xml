@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<level>
-	<ordinal>0</ordinal>
-	<name>Poziom 1</name>
-	<bonus-time>30</bonus-time>
-	<penalty-time>90</penalty-time>
-	<fail-time>150</fail-time>
-	<definition>LEVEL_0.txt</definition>
-</level>

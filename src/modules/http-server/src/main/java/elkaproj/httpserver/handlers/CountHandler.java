@@ -22,7 +22,7 @@ public class CountHandler implements HttpHandler {
     private final IService<PostgresHandler> postgresHandlerService;
     private final IService<ByteEncoderService> byteEncoderService;
 
-    public CountHandler(
+    private CountHandler(
             ServiceProvider serviceProvider,
             @Inject(PostgresHandler.class) IService<PostgresHandler> postgresHandlerService,
             @Inject(ByteEncoderService.class) IService<ByteEncoderService> byteEncoderService) {

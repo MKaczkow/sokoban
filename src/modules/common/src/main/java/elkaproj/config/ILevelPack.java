@@ -3,7 +3,7 @@ package elkaproj.config;
 /**
  * Represents a level pack, which is a collection of {@link ILevel} objects, and additional metadata.
  */
-public interface ILevelPack extends Iterable<ILevel> {
+public interface ILevelPack extends Iterable<ILevel>, IXmlSerializable {
 
     /**
      * Gets the name of this level pack.

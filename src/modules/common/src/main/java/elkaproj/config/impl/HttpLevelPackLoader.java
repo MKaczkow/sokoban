@@ -1,5 +1,7 @@
 package elkaproj.config.impl;
 
+import com.sun.istack.NotNull;
+import elkaproj.CastingIterator;
 import elkaproj.Common;
 import elkaproj.Dimensions;
 import elkaproj.config.ILevel;
@@ -9,12 +11,10 @@ import elkaproj.config.LevelTile;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Loads levels from remote XML data over HTTP.
  */
-public class HttpLevelPackLoader implements ILevelPackLoader {
+class HttpLevelPackLoader implements ILevelPackLoader {
 
     private final URL endpointBase;
 
@@ -48,8 +48,7 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
      */
     @Override
     public ILevelPack loadPack(String id) throws IOException {
-        URL pack = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), id));
-        URL meta = new URL(pack, this.appendPath(pack.getPath(), "meta.xml"));
+        URL meta = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "meta/" + id));
 
         XmlHttpLevelPackMeta xlpm;
         try {
@@ -65,10 +64,10 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
             throw new IOException(e);
         }
 
-        List<ILevel> levels = new ArrayList<>();
+        List<XmlHttpLevel> levels = new ArrayList<>();
         try {
             for (XmlHttpLevelMeta leveldef : xlpm.levels) {
-                levels.add(this.loadLevel(leveldef, pack));
+                levels.add((XmlHttpLevel) this.loadLevel(leveldef, id));
             }
         } catch (Exception e) {
             throw new IOException(e);
@@ -77,8 +76,8 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
         return new XmlHttpLevelPack(xlpm, levels);
     }
 
-    private ILevel loadLevel(XmlHttpLevelMeta xdef, URL pack) throws IOException {
-        URL lvldata = new URL(pack, this.appendPath(pack.getPath(), xdef.definitionFile));
+    private ILevel loadLevel(XmlHttpLevelMeta xdef, String packId) throws IOException {
+        URL lvldata = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "data/" + packId + "/" + xdef.ordinal));
 
         ArrayList<String> lines = new ArrayList<>();
 
@@ -109,7 +108,7 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
             }
         }
 
-        return new XmlHttpLevel(xdef, new Dimensions(width, height), tiles);
+        return new XmlHttpLevel(xdef, new Dimensions(width, height), tiles, xdef.definitionFile);
     }
 
     /**
@@ -134,11 +133,11 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
     private static class XmlHttpLevel implements ILevel {
 
         private final int ordinal, bonusTimeThreshold, penaltyTimeThreshold, failTimeThreshold;
-        private final String name;
+        private final String name, originalFile;
         private final Dimensions dimensions;
         private final LevelTile[][] tiles;
 
-        public XmlHttpLevel(XmlHttpLevelMeta xdef, Dimensions dims, LevelTile[][] tiles) {
+        public XmlHttpLevel(XmlHttpLevelMeta xdef, Dimensions dims, LevelTile[][] tiles, String originalFile) {
             this.ordinal = xdef.ordinal;
             this.name = xdef.name;
             this.bonusTimeThreshold = xdef.bonusTime;
@@ -146,6 +145,7 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
             this.failTimeThreshold = xdef.failTime;
             this.dimensions = dims;
             this.tiles = tiles;
+            this.originalFile = originalFile;
         }
 
         @Override
@@ -189,14 +189,18 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
 
             return tilesCopy;
         }
+
+        public String getOriginalFile() {
+            return originalFile;
+        }
     }
 
     private static class XmlHttpLevelPack implements ILevelPack {
 
         private final String name, id;
-        private final List<ILevel> levels;
+        private final List<XmlHttpLevel> levels;
 
-        public XmlHttpLevelPack(XmlHttpLevelPackMeta xdef, List<ILevel> levels) {
+        public XmlHttpLevelPack(XmlHttpLevelPackMeta xdef, List<XmlHttpLevel> levels) {
             this.name = xdef.name;
             this.id = xdef.id;
             this.levels = levels;
@@ -224,7 +228,33 @@ public class HttpLevelPackLoader implements ILevelPackLoader {
 
         @Override
         public Iterator<ILevel> iterator() {
-            return this.levels.iterator();
+            return new CastingIterator<>(this.levels);
+        }
+
+        @Override
+        public void serialize(OutputStream os) throws IOException, JAXBException {
+            XmlHttpLevelPackMeta meta = new XmlHttpLevelPackMeta();
+            meta.id = this.id;
+            meta.name = this.name;
+            meta.levels = this.levels.stream()
+                    .map(x -> {
+                        XmlHttpLevelMeta xmeta = new XmlHttpLevelMeta();
+                        xmeta.ordinal = x.getOrdinal();
+                        xmeta.name = x.getName();
+                        xmeta.bonusTime = x.getBonusTimeThreshold();
+                        xmeta.penaltyTime = x.getPenaltyTimeThreshold();
+                        xmeta.failTime = x.getFailTimeThreshold();
+                        xmeta.definitionFile = x.getOriginalFile();
+                        return xmeta;
+                    })
+                    .toArray(XmlHttpLevelMeta[]::new);
+
+            JAXBContext jaxbctx = JAXBContext.newInstance(meta.getClass());
+            Marshaller jaxb = jaxbctx.createMarshaller();
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                jaxb.marshal(meta, baos);
+                os.write(baos.toByteArray());
+            }
         }
     }
 

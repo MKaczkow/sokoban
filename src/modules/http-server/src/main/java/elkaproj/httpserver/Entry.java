@@ -4,11 +4,15 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import elkaproj.DebugWriter;
 import elkaproj.Inspector;
+import elkaproj.config.IConfigurationLoader;
 import elkaproj.config.commandline.CommandLineParser;
+import elkaproj.config.impl.FileConfigurationLoader;
 import elkaproj.httpserver.handlers.Handler;
 import elkaproj.httpserver.services.*;
 import org.reflections.Reflections;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
@@ -43,6 +47,13 @@ public class Entry {
         // create service provider
         ServiceProvider.Builder serviceProviderBuilder = registerAutoServices();
         serviceProviderBuilder.registerSingleton(new PostgresConfigurationProvider(opts.getConfigurationFile()), PostgresConfigurationProvider.class);
+        try {
+            IConfigurationLoader configurationLoader = new FileConfigurationLoader(new File(opts.getGameDataLocation(), "config.xml"));
+            serviceProviderBuilder.registerSingleton(configurationLoader, IConfigurationLoader.class);
+        } catch (FileNotFoundException ex) {
+            DebugWriter.INSTANCE.logError("INIT", ex, "Couldn't initialize config loader.");
+            return;
+        }
         ServiceProvider serviceProvider = serviceProviderBuilder.build();
 
         // init DB

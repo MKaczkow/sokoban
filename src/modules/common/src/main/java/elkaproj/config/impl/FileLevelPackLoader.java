@@ -1,5 +1,7 @@
 package elkaproj.config.impl;
 
+import com.sun.istack.NotNull;
+import elkaproj.CastingIterator;
 import elkaproj.Dimensions;
 import elkaproj.config.ILevel;
 import elkaproj.config.ILevelPack;
@@ -8,10 +10,13 @@ import elkaproj.config.LevelTile;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,16 +64,12 @@ class FileLevelPackLoader implements ILevelPackLoader {
             throw new IOException(e);
         }
 
-        File[] leveldefs = pack.listFiles(x -> !x.getName().equals("meta.xml") && x.getName().endsWith(".xml"));
-        List<ILevel> levels = new ArrayList<>();
+        List<XmlFileLevel> levels = new ArrayList<>();
         try {
-            JAXBContext jaxbctx = JAXBContext.newInstance(XmlFileLevelMeta.class);
-            Unmarshaller jaxb = jaxbctx.createUnmarshaller();
-            assert leveldefs != null;
-            for (File leveldef : leveldefs) {
-                levels.add(this.loadLevel((XmlFileLevelMeta) jaxb.unmarshal(leveldef), pack));
+            for (XmlFileLevelMeta leveldef : xlpm.levels) {
+                levels.add((XmlFileLevel) this.loadLevel(leveldef, pack));
             }
-        } catch (JAXBException e) {
+        } catch (Exception e) {
             throw new IOException(e);
         }
 
@@ -98,7 +99,7 @@ class FileLevelPackLoader implements ILevelPackLoader {
             }
         }
 
-        return new XmlFileLevel(xdef, new Dimensions(width, height), tiles);
+        return new XmlFileLevel(xdef, new Dimensions(width, height), tiles, xdef.definitionFile);
     }
 
     /**
@@ -113,11 +114,11 @@ class FileLevelPackLoader implements ILevelPackLoader {
     private static class XmlFileLevel implements ILevel {
 
         private final int ordinal, bonusTimeThreshold, penaltyTimeThreshold, failTimeThreshold;
-        private final String name;
+        private final String name, originalFile;
         private final Dimensions dimensions;
         private final LevelTile[][] tiles;
 
-        public XmlFileLevel(XmlFileLevelMeta xdef, Dimensions dims, LevelTile[][] tiles) {
+        public XmlFileLevel(XmlFileLevelMeta xdef, Dimensions dims, LevelTile[][] tiles, String originalFile) {
             this.ordinal = xdef.ordinal;
             this.name = xdef.name;
             this.bonusTimeThreshold = xdef.bonusTime;
@@ -125,6 +126,7 @@ class FileLevelPackLoader implements ILevelPackLoader {
             this.failTimeThreshold = xdef.failTime;
             this.dimensions = dims;
             this.tiles = tiles;
+            this.originalFile = originalFile;
         }
 
         @Override
@@ -168,14 +170,18 @@ class FileLevelPackLoader implements ILevelPackLoader {
 
             return tilesCopy;
         }
+
+        public String getOriginalFile() {
+            return originalFile;
+        }
     }
 
     private static class XmlFileLevelPack implements ILevelPack {
 
         private final String name, id;
-        private final List<ILevel> levels;
+        private final List<XmlFileLevel> levels;
 
-        public XmlFileLevelPack(XmlFileLevelPackMeta xdef, List<ILevel> levels) {
+        public XmlFileLevelPack(XmlFileLevelPackMeta xdef, List<XmlFileLevel> levels) {
             this.name = xdef.name;
             this.id = xdef.id;
             this.levels = levels;
@@ -203,7 +209,33 @@ class FileLevelPackLoader implements ILevelPackLoader {
 
         @Override
         public Iterator<ILevel> iterator() {
-            return this.levels.iterator();
+            return new CastingIterator<>(this.levels);
+        }
+
+        @Override
+        public void serialize(OutputStream os) throws IOException, JAXBException {
+            XmlFileLevelPackMeta meta = new XmlFileLevelPackMeta();
+            meta.id = this.id;
+            meta.name = this.name;
+            meta.levels = this.levels.stream()
+                    .map(x -> {
+                        XmlFileLevelMeta xmeta = new XmlFileLevelMeta();
+                        xmeta.ordinal = x.getOrdinal();
+                        xmeta.name = x.getName();
+                        xmeta.bonusTime = x.getBonusTimeThreshold();
+                        xmeta.penaltyTime = x.getPenaltyTimeThreshold();
+                        xmeta.failTime = x.getFailTimeThreshold();
+                        xmeta.definitionFile = x.getOriginalFile();
+                        return xmeta;
+                    })
+                    .toArray(XmlFileLevelMeta[]::new);
+
+            JAXBContext jaxbctx = JAXBContext.newInstance(meta.getClass());
+            Marshaller jaxb = jaxbctx.createMarshaller();
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                jaxb.marshal(meta, baos);
+                os.write(baos.toByteArray());
+            }
         }
     }
 
@@ -216,6 +248,9 @@ class FileLevelPackLoader implements ILevelPackLoader {
 
         @XmlAttribute(name = "name")
         public String name;
+
+        @XmlElement(name = "level")
+        public XmlFileLevelMeta[] levels;
     }
 
     @XmlRootElement(name = "level")
