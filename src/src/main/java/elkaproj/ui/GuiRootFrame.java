@@ -1,20 +1,16 @@
 package elkaproj.ui;
 
 import elkaproj.DebugWriter;
-import elkaproj.config.IConfiguration;
-import elkaproj.config.ILevel;
-import elkaproj.config.ILevelPack;
+import elkaproj.config.*;
 import elkaproj.config.language.Language;
 import elkaproj.game.GameController;
 import elkaproj.game.IGameLifecycleHandler;
-import elkaproj.game.Scoreboard;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.Dialog;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -32,6 +28,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
     public static final String COMMAND_EXIT = "PROZEkt_exit";
     public static final String COMMAND_PAUSE_RESUME = "PROZEkt_pause_resume";
     public static final String COMMAND_STOP = "PROZEkt_stop";
+    public static final String COMMAND_MAINMENU = "PROZEkt_mainmenu";
     public static final String COMMAND_RESET = "PROZEkt_reset";
     public static final String COMMAND_SCOREBOARD = "PROZEkt_highscores";
     public static final String COMMAND_AUTHORS = "PROZEkt_authors";
@@ -50,6 +47,10 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
     private final GuiCanvas gameView;
     private final GameController gameController;
 
+    private final IScoreboardStore scoreboardStore;
+    private final IScoreboard scoreboard;
+    private final GuiScoreboard scoreboardView;
+
     private Component activeComponent = null;
 
     /**
@@ -57,9 +58,15 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
      * @param language UI language to use.
      * @param configuration Configuration for the game.
      * @param levelPack Level pack the player will play through.
+     * @param scoreboardStore Scoreboard store used to handle scoreboard.
+     * @param scoreboard Scoreboard used to store results.
      * @throws IOException Texture loading failed.
      */
-    public GuiRootFrame(Language language, IConfiguration configuration, ILevelPack levelPack) throws IOException {
+    public GuiRootFrame(Language language,
+                        IConfiguration configuration,
+                        ILevelPack levelPack,
+                        IScoreboardStore scoreboardStore,
+                        IScoreboard scoreboard) throws IOException {
         super("@window.title");
 
         // set language and controller
@@ -90,6 +97,10 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
         this.statusPanel = new GuiStatusPanel(this.gameController, this.getSize(), this.language);
         this.add(this.statusPanel, BorderLayout.SOUTH);
+
+        this.scoreboardStore = scoreboardStore;
+        this.scoreboard = scoreboard;
+        this.scoreboardView = new GuiScoreboard(this, this.scoreboardStore, this.scoreboard);
     }
 
     private void localize(Component[] components) {
@@ -130,6 +141,14 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
                 if (text.startsWith("@"))
                     ((JTextComponent) component).setText(this.language.getValue(text.substring(1)));
             }
+
+            if (component instanceof JTabbedPane) {
+                for (int i = 0; i < ((JTabbedPane) component).getTabCount(); i++) {
+                    String title = ((JTabbedPane) component).getTitleAt(i);
+                    if (title.startsWith("@"))
+                        ((JTabbedPane) component).setTitleAt(i, this.language.getValue(title.substring(1)));
+                }
+            }
         }
     }
 
@@ -157,7 +176,6 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
                     this.mainMenuView.setPlayerName(this.playerName);
                     this.setActiveView(this.mainMenuView);
-                    this.forceUpdate();
                 }
 
                 break;
@@ -178,7 +196,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
                 break;
 
             case COMMAND_SCOREBOARD:
-
+                this.setActiveView(this.scoreboardView);
                 break;
 
             case COMMAND_RESET:
@@ -187,6 +205,10 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
             case COMMAND_PAUSE_RESUME:
                 this.gameController.togglePause();
+                break;
+
+            case COMMAND_MAINMENU:
+                this.setActiveView(this.mainMenuView);
                 break;
         }
     }
@@ -206,6 +228,18 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
                     JOptionPane.INFORMATION_MESSAGE);
 
         this.setActiveView(this.mainMenuView);
+    }
+
+    @Override
+    public void onNextLevel(ILevel previousLevel, int previousLevelScore, ILevel currentLevel, int totalScore) {
+        if (previousLevel == null)
+            return;
+
+        try {
+            this.scoreboardStore.putEntry(this.scoreboard, previousLevel, this.playerName, previousLevelScore);
+        } catch (IOException ex) {
+            DebugWriter.INSTANCE.logError("GAME-UI", ex, "Failed to log score.");
+        }
     }
 
     private void setActiveView(Component component) {

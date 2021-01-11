@@ -1,11 +1,9 @@
 package elkaproj;
 
-import elkaproj.config.ConfigurationValidator;
-import elkaproj.config.IConfiguration;
-import elkaproj.config.ILevelPack;
-import elkaproj.config.ILevelPackLoader;
+import elkaproj.config.*;
 import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.config.impl.FileConfigurationLoader;
+import elkaproj.config.impl.FileScoreboardStore;
 import elkaproj.config.impl.HttpConfigurationLoader;
 import elkaproj.config.language.Language;
 import elkaproj.config.language.LanguageLoader;
@@ -69,8 +67,14 @@ public class Entry {
         // load configuration
         IConfiguration config = null;
         ILevelPack levelPack = null;
+        IScoreboardStore scoreboardStore = null;
+        IScoreboard scoreboard = null;
         if (!opts.useOnline()) {
             File f = new File("config", "config.xml");
+            File scoreboards = new File("config", "scoreboards");
+            if (!scoreboards.exists())
+                scoreboards.mkdir();
+
             try (FileConfigurationLoader loader = new FileConfigurationLoader(f)) {
                 config = loader.load();
 
@@ -79,6 +83,9 @@ public class Entry {
                 try (ILevelPackLoader lvlloader = loader.getLevelPackLoader()) {
                     levelPack = lvlloader.loadPack(config.getLevelPackId());
                 }
+
+                scoreboardStore = new FileScoreboardStore(scoreboards);
+                scoreboard = scoreboardStore.loadScoreboard(levelPack);
             } catch (IOException e) {
                 DebugWriter.INSTANCE.logError("INIT", e, "Failed to load configuration.");
                 System.exit(1);
@@ -127,10 +134,12 @@ public class Entry {
         Language finalUiLang = uiLang;
         IConfiguration finalConfig = config;
         ILevelPack finalLevelPack = levelPack;
+        IScoreboardStore finalScoreboardStore = scoreboardStore;
+        IScoreboard finalScoreboard = scoreboard;
         SwingUtilities.invokeLater(() -> {
             loadPlexFont();
             try {
-                GuiRootFrame mainframe = new GuiRootFrame(finalUiLang, finalConfig, finalLevelPack);
+                GuiRootFrame mainframe = new GuiRootFrame(finalUiLang, finalConfig, finalLevelPack, finalScoreboardStore, finalScoreboard);
                 mainframe.setVisible(true);
             } catch (Exception ex) {
                 DebugWriter.INSTANCE.logError("UI-INIT", ex, "Failed to initialize UI");

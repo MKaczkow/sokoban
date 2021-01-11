@@ -64,7 +64,7 @@ public class GuiStatusPanel extends JPanel implements IGameLifecycleHandler {
     }
 
     @Override
-    public void onNextLevel(ILevel currentLevel, int totalScore) {
+    public void onNextLevel(ILevel previousLevel, int previousLevelScore, ILevel currentLevel, int totalScore) {
         this.status.setText(this.formatStatus(currentLevel,
                 this.gameController.getCurrentLives(),
                 this.gameController.getMaxLives(),

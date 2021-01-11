@@ -157,9 +157,12 @@ public class GameController {
      * @return Whether a new level was loaded. If false, it means there are no more levels available.
      */
     public boolean nextLevel() {
+        ILevel previousLevel = this.currentLevel;
+        int previousScore = this.currentScore;
+
         boolean success = this.nextLevelInternal();
         if (success)
-            this.onNextLevel(this.currentLevel, this.totalScore);
+            this.onNextLevel(previousLevel, previousScore, this.currentLevel, this.totalScore);
 
         return success;
     }
@@ -400,9 +403,9 @@ public class GameController {
         }
     }
 
-    private void onNextLevel(ILevel currentLevel, int totalScore) {
+    private void onNextLevel(ILevel previousLevel, int previousLevelScore, ILevel currentLevel, int totalScore) {
         for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
-            handler.onNextLevel(currentLevel, totalScore);
+            handler.onNextLevel(previousLevel, previousLevelScore, currentLevel, totalScore);
         }
     }
 

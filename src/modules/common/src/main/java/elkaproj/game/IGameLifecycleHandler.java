@@ -28,10 +28,12 @@ public interface IGameLifecycleHandler {
     /**
      * Triggered whenever a new level is started.
      *
+     * @param previousLevel Previously-played level.
+     * @param previousLevelScore Score achieved during previous level.
      * @param currentLevel The level currently being played.
      * @param totalScore   Player's current total score.
      */
-    default void onNextLevel(ILevel currentLevel, int totalScore) {
+    default void onNextLevel(ILevel previousLevel, int previousLevelScore, ILevel currentLevel, int totalScore) {
     }
 
     /**
