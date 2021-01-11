@@ -101,11 +101,12 @@ public class PostgresHandler {
      * @throws SQLException Exception occurred while executing SQL statements.
      */
     public void writeEntry(String levelPack, int level, String playerName, int score) throws SQLException {
-        try (CallableStatement stmt = this.connection.prepareCall("INSERT INTO highscores VALUES(@player, @level_pack, @level, @score) ON CONFLICT DO UPDATE SET score = @score;")) {
-            stmt.setString("@player", playerName);
-            stmt.setString("@level_pack", levelPack);
-            stmt.setInt("@level", level);
-            stmt.setInt("@score", score);
+        try (PreparedStatement stmt = this.connection.prepareStatement("INSERT INTO highscores VALUES(?, ?, ?, ?) ON CONFLICT (player, level_pack, level) DO UPDATE SET score = ?;")) {
+            stmt.setString(1, playerName);
+            stmt.setString(2, levelPack);
+            stmt.setInt(3, level);
+            stmt.setInt(4, score);
+            stmt.setInt(5, score);
 
             stmt.execute();
         }
@@ -119,8 +120,8 @@ public class PostgresHandler {
      * @throws SQLException Exception occurred while executing SQL statements.
      */
     public List<PostgresScoreboardEntry> getEntriesForPack(String levelPack) throws SQLException {
-        try (CallableStatement stmt = this.connection.prepareCall("SELECT * FROM highscores WHERE level_pack = @level_pack;")) {
-            stmt.setString("@level_pack", levelPack);
+        try (PreparedStatement stmt = this.connection.prepareStatement("SELECT * FROM highscores WHERE level_pack = ?;")) {
+            stmt.setString(1, levelPack);
 
             try (ResultSet res = stmt.executeQuery()) {
                 return this.prepareEntries(res);
@@ -137,9 +138,9 @@ public class PostgresHandler {
      * @throws SQLException Exception occurred while executing SQL statements.
      */
     public List<PostgresScoreboardEntry> getPlayerEntriesForPack(String levelPack, String playerName) throws SQLException {
-        try (CallableStatement stmt = this.connection.prepareCall("SELECT * FROM highscores WHERE level_pack = @level_pack AND player = @player;")) {
-            stmt.setString("@level_pack", levelPack);
-            stmt.setString("@player", playerName);
+        try (PreparedStatement stmt = this.connection.prepareStatement("SELECT * FROM highscores WHERE level_pack = ? AND player = ?;")) {
+            stmt.setString(1, levelPack);
+            stmt.setString(2, playerName);
 
             try (ResultSet res = stmt.executeQuery()) {
                 return this.prepareEntries(res);
@@ -156,9 +157,9 @@ public class PostgresHandler {
      * @throws SQLException Exception occurred while executing SQL statements.
      */
     public List<PostgresScoreboardEntry> getEntriesForLevel(String levelPack, int level) throws SQLException {
-        try (CallableStatement stmt = this.connection.prepareCall("SELECT * FROM highscores WHERE level_pack = @level_pack AND level = @level;")) {
-            stmt.setString("@level_pack", levelPack);
-            stmt.setInt("@level", level);
+        try (PreparedStatement stmt = this.connection.prepareStatement("SELECT * FROM highscores WHERE level_pack = ? AND level = ?;")) {
+            stmt.setString(1, levelPack);
+            stmt.setInt(2, level);
 
             try (ResultSet res = stmt.executeQuery()) {
                 return this.prepareEntries(res);
@@ -176,10 +177,10 @@ public class PostgresHandler {
      * @throws SQLException Exception occurred while executing SQL statements.
      */
     public PostgresScoreboardEntry getEntryFor(String playerName, String levelPack, int level) throws SQLException {
-        try (CallableStatement stmt = this.connection.prepareCall("SELECT * FROM highscores WHERE player = @player AND level_pack = @level_pack AND level = @level LIMIT 1;")) {
-            stmt.setString("@player", playerName);
-            stmt.setString("@level_pack", levelPack);
-            stmt.setInt("@level", level);
+        try (PreparedStatement stmt = this.connection.prepareStatement("SELECT * FROM highscores WHERE player = ? AND level_pack = ? AND level = ? LIMIT 1;")) {
+            stmt.setString(1, playerName);
+            stmt.setString(2, levelPack);
+            stmt.setInt(3, level);
 
             try (ResultSet res = stmt.executeQuery()) {
                 if (res.next()) {
@@ -222,11 +223,12 @@ public class PostgresHandler {
     /**
      * Converts a database view of a scoreboard to a serializable scoreboard.
      *
-     * @param entry Entry to put on the scoreboard.
+     * @param packId ID of the pack the scoreboard is for.
+     * @param entry  Entry to put on the scoreboard.
      * @return Constructed scoreboard.
      */
-    public static IScoreboard createScoreboard(PostgresScoreboardEntry entry) {
-        return new PostgresXmlScoreboard(entry);
+    public static IScoreboard createScoreboard(String packId, PostgresScoreboardEntry entry) {
+        return new PostgresXmlScoreboard(packId, entry);
     }
 
     /**
@@ -294,6 +296,10 @@ public class PostgresHandler {
         @XmlElement(name = "score")
         public int score;
 
+        public PostgresXmlScoreboardEntry() {
+
+        }
+
         public PostgresXmlScoreboardEntry(PostgresScoreboardEntry entry) {
             this.playerName = entry.playerName;
             this.levelNumber = entry.level;
@@ -326,6 +332,10 @@ public class PostgresHandler {
         @XmlElement(name = "entry")
         public PostgresXmlScoreboardEntry[] entries;
 
+        public PostgresXmlScoreboard() {
+
+        }
+
         public PostgresXmlScoreboard(String levelPackId, List<PostgresScoreboardEntry> entries) {
             this.levelPackId = levelPackId;
             this.entries = entries.stream()
@@ -333,9 +343,9 @@ public class PostgresHandler {
                     .toArray(PostgresXmlScoreboardEntry[]::new);
         }
 
-        public PostgresXmlScoreboard(PostgresScoreboardEntry entry) {
-            this.levelPackId = entry.levelPackId;
-            this.entries = new PostgresXmlScoreboardEntry[]{new PostgresXmlScoreboardEntry(entry)};
+        public PostgresXmlScoreboard(String levelPackId, PostgresScoreboardEntry entry) {
+            this.levelPackId = levelPackId;
+            this.entries = entry != null ? new PostgresXmlScoreboardEntry[]{new PostgresXmlScoreboardEntry(entry)} : new PostgresXmlScoreboardEntry[0];
         }
 
         @Override

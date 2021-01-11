@@ -3,10 +3,7 @@ package elkaproj.httpserver.handlers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import elkaproj.httpserver.ServiceProvider;
-import elkaproj.httpserver.services.ByteEncoderService;
-import elkaproj.httpserver.services.IService;
-import elkaproj.httpserver.services.Inject;
-import elkaproj.httpserver.services.PostgresHandler;
+import elkaproj.httpserver.services.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,18 +18,26 @@ public class CountHandler implements HttpHandler {
     private final ServiceProvider serviceProvider;
     private final IService<PostgresHandler> postgresHandlerService;
     private final IService<ByteEncoderService> byteEncoderService;
+    private final IService<ErrorHandlerService> errorHandlerService;
 
     private CountHandler(
             ServiceProvider serviceProvider,
             @Inject(PostgresHandler.class) IService<PostgresHandler> postgresHandlerService,
-            @Inject(ByteEncoderService.class) IService<ByteEncoderService> byteEncoderService) {
+            @Inject(ByteEncoderService.class) IService<ByteEncoderService> byteEncoderService,
+            @Inject(ErrorHandlerService.class) IService<ErrorHandlerService> errorHandlerService) {
         this.serviceProvider = serviceProvider;
         this.postgresHandlerService = postgresHandlerService;
         this.byteEncoderService = byteEncoderService;
+        this.errorHandlerService = errorHandlerService;
     }
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
+        if (!httpExchange.getRequestMethod().equals("GET")) {
+            this.errorHandlerService.getInstance(this.serviceProvider).write400(httpExchange);
+            return;
+        }
+
         PostgresHandler pgh = this.postgresHandlerService.getInstance(this.serviceProvider);
         int count = -1;
         try {

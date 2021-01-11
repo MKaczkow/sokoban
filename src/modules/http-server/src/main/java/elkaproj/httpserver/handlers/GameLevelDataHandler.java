@@ -43,6 +43,11 @@ public class GameLevelDataHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
+        if (!httpExchange.getRequestMethod().equals("GET")) {
+            this.errorHandlerService.getInstance(this.serviceProvider).write400(httpExchange);
+            return;
+        }
+
         EndpointParserService eps = this.endpointParserService.getInstance(this.serviceProvider);
         Map<String, String> args = eps.parse(httpExchange.getRequestURI().getPath(), ROUTE_TEMPLATE);
         if (args == null || !args.containsKey("id") || !args.containsKey("level")) {

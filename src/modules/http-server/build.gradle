@@ -21,6 +21,7 @@ dependencies {
     compile "com.sun.xml.bind:jaxb-impl:2.3.0"
     compile "com.sun.activation:javax.activation:1.2.0"
     compile "org.postgresql:postgresql:42.2.18"
+    compile "org.apache.httpcomponents:httpclient:4.5.13"
 
     implementation project(":modules:common")
 }

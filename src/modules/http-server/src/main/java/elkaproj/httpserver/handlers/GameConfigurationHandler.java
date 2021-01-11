@@ -35,6 +35,11 @@ public class GameConfigurationHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
+        if (!httpExchange.getRequestMethod().equals("GET")) {
+            this.errorHandlerService.getInstance(this.serviceProvider).write400(httpExchange);
+            return;
+        }
+
         IConfigurationLoader cfgLoader = this.configurationLoaderService.getInstance(this.serviceProvider);
         IConfiguration cfg = cfgLoader.load();
 

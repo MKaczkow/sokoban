@@ -48,4 +48,20 @@ public class ErrorHandlerService {
             os.write(bytes);
         }
     }
+
+    /**
+     * Writes a 400 error.
+     *
+     * @param t Context.
+     * @throws IOException Exception occured during writing.
+     */
+    public void write400(HttpExchange t) throws IOException {
+        byte[] bytes = this.byteEncoderService.encode("Bad request");
+
+        t.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
+        t.sendResponseHeaders(400, bytes.length);
+        try (OutputStream os = t.getResponseBody()) {
+            os.write(bytes);
+        }
+    }
 }
