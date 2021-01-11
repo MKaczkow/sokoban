@@ -343,6 +343,10 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
                 this.gameController.move(GameMovementDirection.DOWN);
                 this.gameController.enableInput(false);
                 break;
+
+            case KeyEvent.VK_SPACE:
+                this.gameController.togglePause();
+                break;
         }
     }
 
