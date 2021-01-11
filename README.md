@@ -5,7 +5,7 @@ Autorzy:
 - Kaczkowski Maciej
 
 ## Dokumentacja
-- Dokumentacja dostępna jest [tutaj](https://static.emzi0767.com/misc/eiti/proze/docs/).
+- Dokumentacja dostępna jest [tutaj](https://static.emzi0767.com/misc/eiti/proze/).
 
 ## Uruchamianie projektu
 Żeby skompilować i uruchomić projekt, należy użyć Gradle'a.

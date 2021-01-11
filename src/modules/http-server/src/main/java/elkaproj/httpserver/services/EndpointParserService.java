@@ -17,7 +17,7 @@ public class EndpointParserService {
      *
      * @param path     Path to parse.
      * @param template Template to parse according to.
-     * @return Map of argument name -> argument value.
+     * @return Map of argument name -&gt; argument value.
      */
     public Map<String, String> parse(String path, String template) {
         if (template.startsWith("/"))

@@ -13,6 +13,8 @@ public interface IXmlSerializable {
      * Serializes the object to XML.
      *
      * @param os Stream to serialize to.
+     * @throws IOException Failed writing data to the target stream.
+     * @throws JAXBException Failed serializing the data.
      */
     void serialize(OutputStream os) throws IOException, JAXBException;
 }
