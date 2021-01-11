@@ -85,14 +85,14 @@ public class ScoreboardHandler implements HttpHandler {
             PostgresHandler postgres = this.postgresHandlerService.getInstance(this.serviceProvider);
             postgres.open();
 
-            postgres.writeEntry(args.get("pack"), Integer.parseInt(args.get("level")), player, score);
+            postgres.writeEntry(args.get("pack"), Integer.parseInt(args.get("level")), player.toUpperCase(), score);
 
             postgres.close();
 
             httpExchange.sendResponseHeaders(204, -1);
             httpExchange.close();
 
-            DebugWriter.INSTANCE.logMessage("GDAT-HSW", "Created scoreboard: %s/%d %s %d", args.get("pack"), Integer.parseInt(args.get("level")), player, score);
+            DebugWriter.INSTANCE.logMessage("GDAT-HSW", "Created scoreboard: %s/%d %s %d", args.get("pack"), Integer.parseInt(args.get("level")), player.toUpperCase(), score);
         } catch (Exception ex) {
             DebugWriter.INSTANCE.logError("DB-SCORE", ex, "Couldn't write score.");
             this.errorHandlerService.getInstance(this.serviceProvider).write500(httpExchange);
