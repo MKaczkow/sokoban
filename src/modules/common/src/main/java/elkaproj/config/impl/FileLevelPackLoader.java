@@ -1,7 +1,10 @@
 package elkaproj.config.impl;
 
 import elkaproj.Dimensions;
-import elkaproj.config.*;
+import elkaproj.config.ILevel;
+import elkaproj.config.ILevelPack;
+import elkaproj.config.ILevelPackLoader;
+import elkaproj.config.LevelTile;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;

@@ -1,8 +1,8 @@
 package elkaproj.ui;
 
 import elkaproj.DebugWriter;
-import elkaproj.Entry;
 import elkaproj.Dimensions;
+import elkaproj.Entry;
 import elkaproj.config.ILevel;
 import elkaproj.config.LevelTile;
 import elkaproj.game.GameController;
@@ -56,6 +56,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
      * Initializes the game canvas.
      *
      * @param gameController Controller, which handles the gameplay component itself.
+     * @param pauseString    String displayed when game is paused.
      * @throws IOException Loading tile graphics failed.
      */
     public GuiCanvas(GameController gameController, String pauseString) throws IOException {

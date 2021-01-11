@@ -58,7 +58,7 @@ public class CommandLineParserTests {
     @Test
     public void testLongArguments() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "--debug", "--online-endpoint=https://test.example.com" });
+        CommandLineOptions opts = clp.parse(new String[]{"--debug", "--online-endpoint=https://test.example.com"});
 
         this.assertCommon1(opts);
     }
@@ -66,7 +66,7 @@ public class CommandLineParserTests {
     @Test
     public void testShortArguments1() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-dshttps://test.example.com" });
+        CommandLineOptions opts = clp.parse(new String[]{"-dshttps://test.example.com"});
 
         this.assertCommon1(opts);
     }
@@ -74,7 +74,7 @@ public class CommandLineParserTests {
     @Test
     public void testShortArguments2() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-d", "-shttps://test.example.com" });
+        CommandLineOptions opts = clp.parse(new String[]{"-d", "-shttps://test.example.com"});
 
         this.assertCommon1(opts);
     }
@@ -82,7 +82,7 @@ public class CommandLineParserTests {
     @Test
     public void testShortArguments3() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-d", "-s", "https://test.example.com" });
+        CommandLineOptions opts = clp.parse(new String[]{"-d", "-s", "https://test.example.com"});
 
         this.assertCommon1(opts);
     }
@@ -90,7 +90,7 @@ public class CommandLineParserTests {
     @Test
     public void testShortArguments4() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-dho" });
+        CommandLineOptions opts = clp.parse(new String[]{"-dho"});
 
         this.assertCommon2(opts);
     }
@@ -98,7 +98,7 @@ public class CommandLineParserTests {
     @Test
     public void testShortArguments5() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-dh", "-o" });
+        CommandLineOptions opts = clp.parse(new String[]{"-dh", "-o"});
 
         this.assertCommon2(opts);
     }
@@ -106,7 +106,7 @@ public class CommandLineParserTests {
     @Test
     public void testShortArguments6() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-d", "-h", "-o" });
+        CommandLineOptions opts = clp.parse(new String[]{"-d", "-h", "-o"});
 
         this.assertCommon2(opts);
     }
@@ -114,7 +114,7 @@ public class CommandLineParserTests {
     @Test
     public void testMixedArguments() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-d", "--online-endpoint=https://test.example.com" });
+        CommandLineOptions opts = clp.parse(new String[]{"-d", "--online-endpoint=https://test.example.com"});
 
         this.assertCommon1(opts);
     }
@@ -122,7 +122,7 @@ public class CommandLineParserTests {
     @Test(expected = IllegalArgumentException.class)
     public void testThrowsIncompleteArg1() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "-p" });
+        CommandLineOptions opts = clp.parse(new String[]{"-p"});
 
         Assert.assertNull(opts);
     }
@@ -130,7 +130,7 @@ public class CommandLineParserTests {
     @Test(expected = IllegalArgumentException.class)
     public void testThrowsIncompleteArg2() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "--online-port" });
+        CommandLineOptions opts = clp.parse(new String[]{"--online-port"});
 
         Assert.assertNull(opts);
     }
@@ -138,7 +138,7 @@ public class CommandLineParserTests {
     @Test(expected = IllegalArgumentException.class)
     public void testThrowsUnknownArg() {
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
-        CommandLineOptions opts = clp.parse(new String[] { "--lmao" });
+        CommandLineOptions opts = clp.parse(new String[]{"--lmao"});
 
         Assert.assertNull(opts);
     }

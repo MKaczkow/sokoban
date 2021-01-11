@@ -35,3 +35,27 @@ jar {
         )
     }
 }
+
+subprojects {
+    apply plugin: "java"
+}
+
+task javadocAll(type: Javadoc) {
+    def exportedProjects = [
+            project.path,
+            ":modules:common",
+            ":modules:http-server"
+    ]
+
+    description = "Generates Javadoc of all the projects in the workspace"
+
+    source exportedProjects.collect {
+        project(it).sourceSets.main.allJava
+    }
+
+    classpath = files(exportedProjects.collect {
+        project(it).sourceSets.main.compileClasspath
+    })
+
+    destinationDir = file("${buildDir}/docs/javadoc-all")
+}

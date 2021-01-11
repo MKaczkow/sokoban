@@ -18,9 +18,9 @@ public class GuiScoreboard extends JPanel {
     /**
      * Initiates scoreboard UI.
      *
-     * @param buttonListener controller listener
+     * @param buttonListener  controller listener
      * @param scoreboardStore Scoreboard store used to store the scoreboard.
-     * @param scoreboard Scoreboard holding current highscores.
+     * @param scoreboard      Scoreboard holding current highscores.
      */
     public GuiScoreboard(ActionListener buttonListener, IScoreboardStore scoreboardStore, IScoreboard scoreboard) {
 

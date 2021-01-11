@@ -55,11 +55,12 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
     /**
      * Creates an initializes a new game window.
-     * @param language UI language to use.
-     * @param configuration Configuration for the game.
-     * @param levelPack Level pack the player will play through.
+     *
+     * @param language        UI language to use.
+     * @param configuration   Configuration for the game.
+     * @param levelPack       Level pack the player will play through.
      * @param scoreboardStore Scoreboard store used to handle scoreboard.
-     * @param scoreboard Scoreboard used to store results.
+     * @param scoreboard      Scoreboard used to store results.
      * @throws IOException Texture loading failed.
      */
     public GuiRootFrame(Language language,
@@ -154,7 +155,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
     @Override
     public void paint(Graphics graphics) {
-        this.localize(new Component[] { this });
+        this.localize(new Component[]{this});
         super.paint(graphics);
     }
 
@@ -187,7 +188,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
             case COMMAND_STOP:
                 this.gameController.stopGame(false);
                 break;
-            
+
             case COMMAND_AUTHORS:
                 JOptionPane.showMessageDialog(this,
                         this.language.getValue(STRING_AUTHORS_DIALOG_CONTENTS_L10N_ID),

@@ -3,11 +3,10 @@ package elkaproj.game;
 import elkaproj.DebugWriter;
 import elkaproj.Dimensions;
 import elkaproj.config.*;
-import elkaproj.config.GamePowerup;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -39,8 +38,9 @@ public class GameController {
 
     /**
      * Initializes the controller.
+     *
      * @param configuration Configuration to use for this game.
-     * @param levelPack Level pack the player will play through.
+     * @param levelPack     Level pack the player will play through.
      */
     public GameController(IConfiguration configuration, ILevelPack levelPack) {
         this.configuration = configuration;
@@ -49,6 +49,7 @@ public class GameController {
 
     /**
      * Gets the configuration for this controller.
+     *
      * @return Configuration for the controller.
      */
     public IConfiguration getConfiguration() {
@@ -57,6 +58,7 @@ public class GameController {
 
     /**
      * Gets the number of remaining lives.
+     *
      * @return Number of remaining lives.
      */
     public int getCurrentLives() {
@@ -65,6 +67,7 @@ public class GameController {
 
     /**
      * Gets active power-ups (out of the list of 3).
+     *
      * @return Active power-ups.
      */
     public EnumSet<GamePowerup> getPowerUps() {
@@ -73,6 +76,7 @@ public class GameController {
 
     /**
      * Gets the max number of lives the player can have.
+     *
      * @return Maximum number of lives a player can have.
      */
     public int getMaxLives() {
@@ -81,6 +85,7 @@ public class GameController {
 
     /**
      * Gets the current level score.
+     *
      * @return Current level score.
      */
     public int getCurrentScore() {
@@ -89,6 +94,7 @@ public class GameController {
 
     /**
      * Gets the current level.
+     *
      * @return Current level.
      */
     public ILevel getCurrentLevel() {
@@ -97,6 +103,7 @@ public class GameController {
 
     /**
      * Gets the total score across all levels.
+     *
      * @return Total score across all level.
      */
     public int getTotalScore() {
@@ -105,6 +112,7 @@ public class GameController {
 
     /**
      * Gets whether a game is active.
+     *
      * @return Whether a game is active.
      */
     public boolean isGameRunning() {
@@ -113,6 +121,7 @@ public class GameController {
 
     /**
      * Gets whether the game is paused.
+     *
      * @return Whether the game is paused.
      */
     public boolean isPaused() {
@@ -121,6 +130,7 @@ public class GameController {
 
     /**
      * Adds a game lifecycle event handler.
+     *
      * @param lifecycleHandler Game lifecycle event handler.
      */
     public void addLifecycleHandler(IGameLifecycleHandler lifecycleHandler) {
@@ -129,6 +139,7 @@ public class GameController {
 
     /**
      * Removes a game lifecycle event handler.
+     *
      * @param lifecycleHandler Game lifecycle event handler.
      */
     public void removeLifecycleHandler(IGameLifecycleHandler lifecycleHandler) {
@@ -137,6 +148,7 @@ public class GameController {
 
     /**
      * Adds a game event handler.
+     *
      * @param gameEventHandler Game event handler.
      */
 
@@ -146,6 +158,7 @@ public class GameController {
 
     /**
      * Removes a game event handler.
+     *
      * @param gameEventHandler Game event handler.
      */
     public void removeGameEventHandler(IGameEventHandler gameEventHandler) {
@@ -154,6 +167,7 @@ public class GameController {
 
     /**
      * Moves to the next level.
+     *
      * @return Whether a new level was loaded. If false, it means there are no more levels available.
      */
     public boolean nextLevel() {
@@ -235,6 +249,7 @@ public class GameController {
 
     /**
      * Stops the game, if applicable.
+     *
      * @param completed Whether the stop happened as a result of game being completed. False indicates the game was interrupted manually.
      */
     public void stopGame(boolean completed) {
@@ -262,8 +277,7 @@ public class GameController {
         DebugWriter.INSTANCE.logMessage("GAME", "Pause status: %b", this.gamePaused);
         if (this.gamePaused) {
             this.onGamePaused();
-        }
-        else {
+        } else {
             this.onGameResumed();
         }
     }
@@ -278,12 +292,14 @@ public class GameController {
             this.onLivesUpdated(this.getCurrentLives(), this.getMaxLives());
 
             this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, null);
+        } else {
+            stopGame(false);
         }
-        else { stopGame(false); }
     }
 
     /**
      * Sets whether player inputs are accepted.
+     *
      * @param enable Whether inputs are to be accepted.
      */
     public void enableInput(boolean enable) {
@@ -292,6 +308,7 @@ public class GameController {
 
     /**
      * Move the player in a direction.
+     *
      * @param direction Direction to move the player in.
      */
     public void move(GameMovementDirection direction) {

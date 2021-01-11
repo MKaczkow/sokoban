@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  */
 public class LanguageLoader {
 
-    private static final Pattern LANGUAGE_REGEX = Pattern.compile("^strings\\.(?<code>[a-z]{2}\\-[A-Z]{2})\\.txt$");
+    private static final Pattern LANGUAGE_REGEX = Pattern.compile("^strings\\.(?<code>[a-z]{2}-[A-Z]{2})\\.txt$");
     private static final String LANGUAGE_FILE_PATTERN = "strings.%s.txt";
 
     private final Set<String> availableLanguages;
@@ -28,6 +28,7 @@ public class LanguageLoader {
 
     /**
      * Creates a new language loader.
+     *
      * @param resourceClass Class to use for loading resources.
      */
     public LanguageLoader(Class<?> resourceClass) {

@@ -69,9 +69,9 @@ public class FileScoreboardStore implements IScoreboardStore {
      * Stores a scoreboard entry in the scoreboard.
      *
      * @param scoreboard Scoreboard to store the entry in.
-     * @param level Level to store the entry for.
+     * @param level      Level to store the entry for.
      * @param playerName Name of the player to store the score for.
-     * @param score Score achieved by the player.
+     * @param score      Score achieved by the player.
      * @throws IOException Loading failed.
      */
     @Override
@@ -243,9 +243,9 @@ public class FileScoreboardStore implements IScoreboardStore {
                 temp.completedLevels.add(entry.levelNumber);
             }
 
-            return entries.entrySet()
+            return entries.values()
                     .stream()
-                    .map(x -> x.getValue().toTotalEntry(levels))
+                    .map(temporary -> temporary.toTotalEntry(levels))
                     .collect(Collectors.toList());
         }
 

@@ -1,12 +1,9 @@
 package elkaproj.game;
 
-import elkaproj.config.*;
 import elkaproj.config.IConfiguration;
 import elkaproj.config.ILevelPack;
 
-import java.awt.*;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class GameClock {
 
@@ -21,8 +18,9 @@ public class GameClock {
 
     /**
      * Initializes the clock.
+     *
      * @param configuration Configuration to use for this game.
-     * @param levelPack Level pack the player will play through.
+     * @param levelPack     Level pack the player will play through.
      */
     public GameClock(IConfiguration configuration, ILevelPack levelPack) {
         this.configuration = configuration;
@@ -33,21 +31,21 @@ public class GameClock {
     /**
      * Starts clock, should be executed at the beggining of each level and after resuming game.
      */
-    public void startClock(){
+    public void startClock() {
 
     }
 
     /**
      * Stops clock, should be executed when pausing or finishing level
      */
-    public void stopClock(){
+    public void stopClock() {
 
     }
 
     /**
      * Resets clock, should be executed beggining of each level.
      */
-    public void resetClock(){
+    public void resetClock() {
 
     }
 }
