@@ -6,9 +6,15 @@ import elkaproj.DebugWriter;
 import elkaproj.Inspector;
 import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.httpserver.handlers.Handler;
+import elkaproj.httpserver.services.IService;
+import elkaproj.httpserver.services.Inject;
+import elkaproj.httpserver.services.Service;
+import elkaproj.httpserver.services.ServiceKind;
 import org.reflections.Reflections;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Parameter;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -37,9 +43,13 @@ public class Entry {
             inspector.inspect(opts);
         }
 
+        // create service provider
+        ServiceProvider.Builder serviceProviderBuilder = registerAutoServices();
+        ServiceProvider serviceProvider = serviceProviderBuilder.build();
+
         // start http
         InetSocketAddress addr = new InetSocketAddress(opts.getBindAddress(), opts.getPort());
-        HttpServer http = null;
+        HttpServer http;
         try {
             http = HttpServer.create(addr, 0);
         } catch (IOException ex) {
@@ -48,15 +58,13 @@ public class Entry {
         }
 
         // here register all modules
-        createContexts(http);
+        createContexts(http, serviceProvider);
 
         // add shutdown hook
         HttpServer finalHttp = http;
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                finalHttp.stop(0);
-            }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            DebugWriter.INSTANCE.logMessage("HTTP", "Shutting down...");
+            finalHttp.stop(0);
         }));
 
         // start http
@@ -64,7 +72,7 @@ public class Entry {
         http.start();
     }
 
-    private static void createContexts(HttpServer http) {
+    private static void createContexts(HttpServer http, ServiceProvider serviceProvider) {
         Reflections r = new Reflections(Entry.class.getPackage().getName());
         ArrayList<HandlerInfo> handlers = new ArrayList<>();
 
@@ -86,9 +94,45 @@ public class Entry {
             }
 
             String path = h.value();
+
+            Constructor<?>[] ctors = klass.getDeclaredConstructors();
+            if (ctors.length != 1) {
+                DebugWriter.INSTANCE.logMessage("HTTP-HDLR", "Type %s is not eligible for handler type (multiple ctors)");
+                continue;
+            }
+
+            Constructor<? extends HttpHandler> ctor = (Constructor<? extends HttpHandler>) ctors[0];
+
             HttpHandler handler;
             try {
-                handler = (HttpHandler) klass.getDeclaredConstructor().newInstance();
+                Object[] args = null;
+                if (ctor.getParameterCount() > 0) {
+                    Parameter[] params = ctor.getParameters();
+                    if (params[0].getType() != ServiceProvider.class) {
+                        DebugWriter.INSTANCE.logMessage("HTTP-HDLR", "Type %s is not eligible for handler type (non-service provider arg)");
+                        continue;
+                    }
+
+                    args = new Object[params.length];
+                    args[0] = serviceProvider;
+                    for (int i = 1; i < params.length; i++) {
+                        Parameter param = params[i];
+                        if (param.getType() != IService.class) {
+                            DebugWriter.INSTANCE.logMessage("HTTP-HDLR", "Type %s is not eligible for handler type (non-service arg)");
+                            continue;
+                        }
+
+                        Inject inject = param.getAnnotation(Inject.class);
+                        if (inject == null) {
+                            DebugWriter.INSTANCE.logMessage("HTTP-HDLR", "Type %s is not eligible for handler type (non-inject service)");
+                            continue;
+                        }
+
+                        args[i] = serviceProvider.resolveService(inject.value());
+                    }
+                }
+
+                handler = ctor.newInstance(args);
             } catch (Exception ex) {
                 DebugWriter.INSTANCE.logError("HTTP-HDLR", ex, "Failed to instantiate handler of type %s", klass.getName());
                 continue;
@@ -102,6 +146,45 @@ public class Entry {
             DebugWriter.INSTANCE.logMessage("HTTP-HDLR", "Registered handler %s for path %s", handler.instance.getClass().getName(), handler.path);
             http.createContext(handler.path, handler.instance);
         }
+    }
+
+    private static ServiceProvider.Builder registerAutoServices() {
+        Reflections r = new Reflections(Entry.class.getPackage().getName());
+        ServiceProvider.Builder providerBuilder = ServiceProvider.createBuilder();
+
+        for (Class<?> klass : r.getTypesAnnotatedWith(Service.class)) {
+            if (klass.isInterface() || klass.isAnnotation()) {
+                DebugWriter.INSTANCE.logMessage("HTTP-SRV", "Type %s is not eligible for service type (iface/annotation)");
+                continue;
+            }
+
+            Service srv = klass.getAnnotation(Service.class);
+            if (srv == null) {
+                DebugWriter.INSTANCE.logMessage("HTTP-SRV", "Type %s is not eligible for service type (missing annotation)");
+                continue;
+            }
+
+            ServiceKind kind = srv.kind();
+            Class<?> srvKlass = srv.type();
+            if (srvKlass == Object.class) {
+                srvKlass = klass;
+            } else if (!srvKlass.isAssignableFrom(klass)) {
+                DebugWriter.INSTANCE.logMessage("HTTP-SRV", "Type %s is not eligible for service type (not assignable to its type)");
+                continue;
+            }
+
+            switch (kind) {
+                case SINGLETON:
+                    providerBuilder.registerSingleton(srvKlass);
+                    break;
+
+                case TRANSIENT:
+                    providerBuilder.registerTransient(srvKlass);
+                    break;
+            }
+        }
+
+        return providerBuilder;
     }
 
     private static class HandlerInfo {

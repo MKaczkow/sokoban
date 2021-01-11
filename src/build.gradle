@@ -24,6 +24,9 @@ dependencies {
     implementation project(":modules:common")
 
     testCompile "junit:junit:4.12"
+
+    testImplementation project(":modules:common")
+    testImplementation project(":modules:http-server")
 }
 
 mainClassName = 'elkaproj.Entry'
