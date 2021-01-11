@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Represents a scoreboard.
  */
-public interface IScoreboard {
+public interface IScoreboard extends IXmlSerializable {
 
     /**
      * Gets the level pack this scoreboard is for.

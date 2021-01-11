@@ -1,6 +1,5 @@
 package elkaproj.config.impl;
 
-import com.sun.istack.NotNull;
 import elkaproj.CastingIterator;
 import elkaproj.Dimensions;
 import elkaproj.config.ILevel;

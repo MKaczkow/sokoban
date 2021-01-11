@@ -4,14 +4,17 @@ import elkaproj.DebugWriter;
 import elkaproj.config.*;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -250,6 +253,16 @@ public class FileScoreboardStore implements IScoreboardStore {
             return Arrays.stream(this.entries)
                     .filter(x -> x.levelNumber == level.getOrdinal())
                     .collect(Collectors.toList());
+        }
+
+        @Override
+        public void serialize(OutputStream os) throws IOException, JAXBException {
+            JAXBContext jaxbctx = JAXBContext.newInstance(this.getClass());
+            Marshaller jaxb = jaxbctx.createMarshaller();
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                jaxb.marshal(this, baos);
+                os.write(baos.toByteArray());
+            }
         }
     }
 }

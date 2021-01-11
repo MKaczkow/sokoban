@@ -1,6 +1,17 @@
 package elkaproj.httpserver.services;
 
+import elkaproj.config.*;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +33,7 @@ public class PostgresHandler {
     /**
      * Opens the connection.
      *
-     * @throws IOException Exception occurred while loading configuration.
+     * @throws IOException  Exception occurred while loading configuration.
      * @throws SQLException Exception occurred while executing SQL statements.
      */
     public synchronized void open() throws IOException, SQLException {
@@ -83,10 +94,10 @@ public class PostgresHandler {
     /**
      * Creates a new scoreboard entry.
      *
-     * @param levelPack ID of the level pack the entry is for.
-     * @param level Level the entry is for.
+     * @param levelPack  ID of the level pack the entry is for.
+     * @param level      Level the entry is for.
      * @param playerName Name of the player who made the entry.
-     * @param score Score achieved by the player.
+     * @param score      Score achieved by the player.
      * @throws SQLException Exception occurred while executing SQL statements.
      */
     public void writeEntry(String levelPack, int level, String playerName, int score) throws SQLException {
@@ -120,7 +131,7 @@ public class PostgresHandler {
     /**
      * Gets all scoreboard entries corresponding to given level pack and player.
      *
-     * @param levelPack ID of the level pack to get entries for.
+     * @param levelPack  ID of the level pack to get entries for.
      * @param playerName Name of the player to get entries for.
      * @return List of all entries matching criteria.
      * @throws SQLException Exception occurred while executing SQL statements.
@@ -140,7 +151,7 @@ public class PostgresHandler {
      * Gets all scoreboard entries corresponding to level.
      *
      * @param levelPack ID of the level pack to get entries for.
-     * @param level Number of the level to get entries for.
+     * @param level     Number of the level to get entries for.
      * @return List of all entries matching criteria.
      * @throws SQLException Exception occurred while executing SQL statements.
      */
@@ -159,8 +170,8 @@ public class PostgresHandler {
      * Gets a single entry corresponding to player on given level.
      *
      * @param playerName Name of the player to get the entry for.
-     * @param levelPack ID of the level pack to get entry for.
-     * @param level Number of the level to get entry for.
+     * @param levelPack  ID of the level pack to get entry for.
+     * @param level      Number of the level to get entry for.
      * @return Entry matching criteria, or null.
      * @throws SQLException Exception occurred while executing SQL statements.
      */
@@ -195,6 +206,27 @@ public class PostgresHandler {
             ));
         }
         return entries;
+    }
+
+    /**
+     * Converts a database view of a scoreboard to a serializable scoreboard.
+     *
+     * @param packId  ID of the pack the scoreboard is for.
+     * @param entries Entries to put on the scoreboard.
+     * @return Constructed scoreboard.
+     */
+    public static IScoreboard createScoreboard(String packId, List<PostgresScoreboardEntry> entries) {
+        return new PostgresXmlScoreboard(packId, entries);
+    }
+
+    /**
+     * Converts a database view of a scoreboard to a serializable scoreboard.
+     *
+     * @param entry Entry to put on the scoreboard.
+     * @return Constructed scoreboard.
+     */
+    public static IScoreboard createScoreboard(PostgresScoreboardEntry entry) {
+        return new PostgresXmlScoreboard(entry);
     }
 
     /**
@@ -246,6 +278,89 @@ public class PostgresHandler {
          */
         public int getScore() {
             return score;
+        }
+    }
+
+    @XmlRootElement(name = "entry")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    private static class PostgresXmlScoreboardEntry implements IScoreboardEntry {
+
+        @XmlElement(name = "player")
+        public String playerName;
+
+        @XmlElement(name = "level")
+        public int levelNumber;
+
+        @XmlElement(name = "score")
+        public int score;
+
+        public PostgresXmlScoreboardEntry(PostgresScoreboardEntry entry) {
+            this.playerName = entry.playerName;
+            this.levelNumber = entry.level;
+            this.score = entry.score;
+        }
+
+        @Override
+        public String getPlayerName() {
+            return this.playerName;
+        }
+
+        @Override
+        public ILevel getLevel() {
+            return null;
+        }
+
+        @Override
+        public int getScore() {
+            return this.score;
+        }
+    }
+
+    @XmlRootElement(name = "scoreboard")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    private static class PostgresXmlScoreboard implements IScoreboard {
+
+        @XmlElement(name = "level-pack")
+        public String levelPackId;
+
+        @XmlElement(name = "entry")
+        public PostgresXmlScoreboardEntry[] entries;
+
+        public PostgresXmlScoreboard(String levelPackId, List<PostgresScoreboardEntry> entries) {
+            this.levelPackId = levelPackId;
+            this.entries = entries.stream()
+                    .map(PostgresXmlScoreboardEntry::new)
+                    .toArray(PostgresXmlScoreboardEntry[]::new);
+        }
+
+        public PostgresXmlScoreboard(PostgresScoreboardEntry entry) {
+            this.levelPackId = entry.levelPackId;
+            this.entries = new PostgresXmlScoreboardEntry[]{new PostgresXmlScoreboardEntry(entry)};
+        }
+
+        @Override
+        public ILevelPack getLevelPack() {
+            return null;
+        }
+
+        @Override
+        public List<IScoreboardTotalEntry> getAllTotalEntries() {
+            return null;
+        }
+
+        @Override
+        public List<IScoreboardEntry> getLevelEntries(ILevel level) {
+            return null;
+        }
+
+        @Override
+        public void serialize(OutputStream os) throws IOException, JAXBException {
+            JAXBContext jaxbctx = JAXBContext.newInstance(this.getClass());
+            Marshaller jaxb = jaxbctx.createMarshaller();
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                jaxb.marshal(this, baos);
+                os.write(baos.toByteArray());
+            }
         }
     }
 }
