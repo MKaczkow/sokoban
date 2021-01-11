@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pg-config>
+    <pg-host>localhost</pg-host>
+    <pg-port>5432</pg-port>
+    <pg-db>proze</pg-db>
+    <pg-user>proze</pg-user>
+    <pg-pass>proze</pg-pass>
+    <pg-ssl>false</pg-ssl>
+</pg-config>

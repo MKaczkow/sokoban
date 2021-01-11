@@ -20,6 +20,9 @@ public class CommandLineOptions {
     @CommandLineArgument(name = "bind", shorthand = 'b', type = CommandLineArgumentType.STRING, defaultValue = "0.0.0.0", helpText = "IP address to bind to.")
     private String bindAddress;
 
+    @CommandLineArgument(name = "config", shorthand = 'c', type = CommandLineArgumentType.STRING, defaultValue = "config.xml", helpText = "Configuration file to load DB config from.")
+    private String configurationFile;
+
     public CommandLineOptions() {
     }
 
@@ -57,5 +60,14 @@ public class CommandLineOptions {
      */
     public String getBindAddress() {
         return this.bindAddress;
+    }
+
+    /**
+     * Gets the path to DB configuration file.
+     *
+     * @return Path to DB configuration file.
+     */
+    public String getConfigurationFile() {
+        return this.configurationFile;
     }
 }

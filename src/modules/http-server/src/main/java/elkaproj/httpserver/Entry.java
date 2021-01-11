@@ -6,10 +6,7 @@ import elkaproj.DebugWriter;
 import elkaproj.Inspector;
 import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.httpserver.handlers.Handler;
-import elkaproj.httpserver.services.IService;
-import elkaproj.httpserver.services.Inject;
-import elkaproj.httpserver.services.Service;
-import elkaproj.httpserver.services.ServiceKind;
+import elkaproj.httpserver.services.*;
 import org.reflections.Reflections;
 
 import java.io.IOException;
@@ -45,7 +42,20 @@ public class Entry {
 
         // create service provider
         ServiceProvider.Builder serviceProviderBuilder = registerAutoServices();
+        serviceProviderBuilder.registerSingleton(new PostgresConfigurationProvider(opts.getConfigurationFile()), PostgresConfigurationProvider.class);
         ServiceProvider serviceProvider = serviceProviderBuilder.build();
+
+        // init DB
+        IService<PostgresHandler> pghService = serviceProvider.resolveService(PostgresHandler.class);
+        PostgresHandler pgh = pghService.getInstance(serviceProvider);
+        try {
+            pgh.open();
+            pgh.ensureDb();
+            pgh.close();
+        } catch (Exception ex) {
+            DebugWriter.INSTANCE.logError("INIT", ex, "Couldn't initialize DB.");
+            return;
+        }
 
         // start http
         InetSocketAddress addr = new InetSocketAddress(opts.getBindAddress(), opts.getPort());
@@ -132,6 +142,7 @@ public class Entry {
                     }
                 }
 
+                ctor.setAccessible(true);
                 handler = ctor.newInstance(args);
             } catch (Exception ex) {
                 DebugWriter.INSTANCE.logError("HTTP-HDLR", ex, "Failed to instantiate handler of type %s", klass.getName());

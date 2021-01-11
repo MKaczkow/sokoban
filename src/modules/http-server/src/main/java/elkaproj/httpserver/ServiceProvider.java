@@ -39,7 +39,7 @@ public class ServiceProvider {
         }
 
         if (candidate == null)
-            throw new IllegalStateException("No services of given type were registered.");
+            throw new IllegalStateException("No services of given type (" + klass.getName() + ") were registered.");
 
         return candidate;
     }
@@ -67,6 +67,7 @@ public class ServiceProvider {
         }
 
         try {
+            ctor.setAccessible(true);
             return ctor.newInstance(services);
         } catch (Exception ex) {
             throw new IllegalStateException(ex);
