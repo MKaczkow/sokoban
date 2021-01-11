@@ -218,10 +218,6 @@ public class FileScoreboardStore implements IScoreboardStore {
             return this.levelPack;
         }
 
-        public void setLevelPack(ILevelPack levelPack) {
-            this.levelPack = levelPack;
-        }
-
         @Override
         public List<IScoreboardTotalEntry> getAllTotalEntries() {
             final Set<Integer> levels = StreamSupport.stream(this.levelPack.spliterator(), false)

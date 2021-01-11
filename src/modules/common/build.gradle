@@ -20,4 +20,5 @@ dependencies {
     compile "com.sun.xml.bind:jaxb-core:2.3.0"
     compile "com.sun.xml.bind:jaxb-impl:2.3.0"
     compile "com.sun.activation:javax.activation:1.2.0"
+    compile "org.reflections:reflections:0.9.12"
 }
