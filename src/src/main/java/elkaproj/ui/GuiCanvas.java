@@ -50,17 +50,20 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
     private final Image tileFloor, tileWall, tileTarget, tileCrate, tilePlayer;
 
     private BufferStrategy bs;
-    private final String pauseString;
+    private final String pauseString, savingString;
+    private boolean showSaving = false;
 
     /**
      * Initializes the game canvas.
      *
      * @param gameController Controller, which handles the gameplay component itself.
      * @param pauseString    String displayed when game is paused.
+     * @param savingString   String displayed when scores are saving.
      * @throws IOException Loading tile graphics failed.
      */
-    public GuiCanvas(GameController gameController, String pauseString) throws IOException {
+    public GuiCanvas(GameController gameController, String pauseString, String savingString) throws IOException {
         this.pauseString = pauseString;
+        this.savingString = savingString;
         this.gameController = gameController;
         this.gameController.addGameEventHandler(this);
         this.addKeyListener(this);
@@ -115,6 +118,15 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         });
     }
 
+    /**
+     * Sets whether to show a saving screen.
+     *
+     * @param showSaving Whether to show a saving screen.
+     */
+    public void showSaving(boolean showSaving) {
+        this.showSaving = showSaving;
+    }
+
     private void redrawGame(Graphics2D g) {
         try {
             this.boardLock.lock();
@@ -142,20 +154,41 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
                     tileSize,
                     animationOffset);
 
-            if (this.gameController.isPaused()) {
-                Font f = Entry.IBMPlexBoldItalic.deriveFont(36f);
-                FontMetrics fm = g.getFontMetrics(f);
+            Font f;
+            FontMetrics fm;
+            int h, w;
+            if (this.gameController.isPaused() || this.showSaving) {
+                g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+            }
 
-                int h = fm.getHeight();
-                int w = fm.stringWidth(this.pauseString);
+            if (this.gameController.isPaused()) {
+                f = Entry.IBMPlexBoldItalic.deriveFont(36f);
+                fm = g.getFontMetrics(f);
+
+                h = fm.getHeight();
+                w = fm.stringWidth(this.pauseString);
 
                 g.setColor(new Color(33, 33, 33));
                 g.fillRect(16, 16, w + 24, h + 24);
 
                 g.setColor(Color.WHITE);
-                g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
                 g.setFont(f);
                 g.drawString(this.pauseString, 28, 28 + h - fm.getDescent());
+            }
+
+            if (this.showSaving) {
+                f = Entry.IBMPlexBoldItalic.deriveFont(16f);
+                fm = g.getFontMetrics(f);
+
+                h = fm.getHeight();
+                w = fm.stringWidth(this.savingString);
+
+                g.setColor(new Color(33, 33, 33));
+                g.fillRect(0, size.height - h - 24, w + 24, h + 24);
+
+                g.setColor(Color.WHITE);
+                g.setFont(f);
+                g.drawString(this.savingString, 12, size.height - 12 - fm.getDescent());
             }
         } finally {
             this.boardLock.unlock();

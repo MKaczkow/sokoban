@@ -94,7 +94,9 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
         this.setActiveView(this.playerNameView);
 
         this.mainMenuView = new GuiMainMenuView(this);
-        this.gameView = new GuiCanvas(this.gameController, this.language.getValue("misc.paused"));
+        this.gameView = new GuiCanvas(this.gameController,
+                this.language.getValue("misc.paused"),
+                this.language.getValue("misc.saving"));
 
         this.statusPanel = new GuiStatusPanel(this.gameController, this.getSize(), this.language);
         this.add(this.statusPanel, BorderLayout.SOUTH);
@@ -236,12 +238,17 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
         if (previousLevel == null)
             return;
 
-        try {
-            DebugWriter.INSTANCE.logMessage("GAME-UI", "Logging new score.");
-            this.scoreboardStore.putEntry(this.scoreboard, previousLevel, this.playerName, previousLevelScore);
-        } catch (IOException ex) {
-            DebugWriter.INSTANCE.logError("GAME-UI", ex, "Failed to log score.");
-        }
+        this.gameView.showSaving(true);
+        new Thread(() -> {
+            try {
+                DebugWriter.INSTANCE.logMessage("GAME-UI", "Logging new score.");
+                this.scoreboardStore.putEntry(this.scoreboard, previousLevel, this.playerName, previousLevelScore);
+            } catch (Exception ex) {
+                DebugWriter.INSTANCE.logError("GAME-UI", ex, "Failed to log score.");
+            } finally {
+                this.gameView.showSaving(false);
+            }
+        }).start();
     }
 
     private void setActiveView(Component component) {
