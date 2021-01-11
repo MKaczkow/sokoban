@@ -88,6 +88,9 @@ public class GameLevelDataHandler implements HttpHandler {
                     try (OutputStream os = httpExchange.getResponseBody()) {
                         httpExchange.sendResponseHeaders(200, baos.size());
                         os.write(baos.toByteArray());
+
+                        DebugWriter.INSTANCE.logMessage("GDAT-LDAT", "Sent level data for %s/%d", levelPack.getId(), levelId);
+                        return;
                     }
                 }
             }

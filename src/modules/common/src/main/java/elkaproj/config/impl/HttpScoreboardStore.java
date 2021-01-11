@@ -1,5 +1,6 @@
 package elkaproj.config.impl;
 
+import elkaproj.Common;
 import elkaproj.DebugWriter;
 import elkaproj.config.*;
 
@@ -11,123 +12,91 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * Loads and stores scoreboards in files.
+ * Loads scoreboards from HTTP endpoints.
  *
  * @see IScoreboard
  * @see IScoreboardEntry
  * @see IScoreboardTotalEntry
  */
-public class FileScoreboardStore implements IScoreboardStore {
+public class HttpScoreboardStore implements IScoreboardStore {
 
-    private final File root;
+    private final URL endpointBase;
 
     /**
-     * Creates a new scoreboard store from given root directory.
+     * Creates a new configuration loader.
      *
-     * @param root Root directory for the scoreboard.
+     * @param endpointBase Base endpoint of the scoreboard.
      */
-    public FileScoreboardStore(File root) {
-        this.root = root;
+    public HttpScoreboardStore(URL endpointBase) {
+        this.endpointBase = endpointBase;
     }
 
-    /**
-     * Loads a scoreboard and returns it.
-     *
-     * @param levelPack Level pack to load scoreboard for.
-     * @return Loaded scoreboard.
-     * @throws IOException Loading failed.
-     */
     @Override
     public IScoreboard loadScoreboard(ILevelPack levelPack) throws IOException {
         try {
-            File scoreboard = new File(this.root, String.format("%s.xml", levelPack.getId()));
-            if (!scoreboard.exists()) {
-                XmlFileScoreboard s = new XmlFileScoreboard();
-                s.levelPackId = levelPack.getId();
-                s.levelPack = levelPack;
-                s.entries = new XmlFileScoreboardEntry[0];
+            URL scoreboard = new URL(this.endpointBase, Common.appendPath(this.endpointBase.getPath(), levelPack.getId()));
 
-                return s;
+            JAXBContext jaxbctx = JAXBContext.newInstance(XmlHttpScoreboard.class);
+            Unmarshaller jaxb = jaxbctx.createUnmarshaller();
+
+            URLConnection con = scoreboard.openConnection();
+            con.setRequestProperty("User-Agent", Common.USER_AGENT);
+
+            XmlHttpScoreboard res;
+            try (InputStream is = con.getInputStream()) {
+                res = (XmlHttpScoreboard) jaxb.unmarshal(is);
             }
 
-            JAXBContext jaxbctx = JAXBContext.newInstance(XmlFileScoreboard.class);
-            Unmarshaller jaxb = jaxbctx.createUnmarshaller();
-            XmlFileScoreboard res = (XmlFileScoreboard) jaxb.unmarshal(scoreboard);
-
             res.levelPack = levelPack;
-            for (XmlFileScoreboardEntry entry : res.entries) {
+            for (XmlHttpScoreboardEntry entry : res.entries) {
                 entry.level = levelPack.getLevel(entry.levelNumber);
             }
 
             return res;
         } catch (Exception ex) {
-            DebugWriter.INSTANCE.logError("LDR-FILE", ex, "Error while loading scoreboard for level pack '%s'.", levelPack.getId());
+            DebugWriter.INSTANCE.logError("LDR-HTTP", ex, "Error while loading scoreboard for level pack '%s'.", levelPack.getId());
             throw new IOException(ex);
         }
     }
 
-    /**
-     * Stores a scoreboard entry in the scoreboard.
-     *
-     * @param scoreboard Scoreboard to store the entry in.
-     * @param level      Level to store the entry for.
-     * @param playerName Name of the player to store the score for.
-     * @param score      Score achieved by the player.
-     * @throws IOException Loading failed.
-     */
     @Override
     public void putEntry(IScoreboard scoreboard, ILevel level, String playerName, int score) throws IOException {
-        XmlFileScoreboard s = (XmlFileScoreboard) scoreboard;
+        String scoreStr = String.valueOf(score);
+        byte[] scoreData = scoreStr.getBytes(StandardCharsets.UTF_8);
 
-        ArrayList<XmlFileScoreboardEntry> newEntries = new ArrayList<>(s.entries.length + 1);
-        boolean replaceEntry = true;
-        for (XmlFileScoreboardEntry entry : s.entries) {
-            if (entry.levelNumber == level.getOrdinal() && entry.playerName.equals(playerName)) {
-                if (score > entry.score) {
-                    replaceEntry = false;
-                    continue;
-                }
-            }
-
-            newEntries.add(entry);
+        URL url = new URL(this.endpointBase, Common.appendPath(this.endpointBase.getPath(), scoreboard.getLevelPack().getId() + "/" + level.getOrdinal() + "?player=" + playerName));
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("User-Agent", Common.USER_AGENT);
+        con.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
+        con.setRequestProperty("Content-Length", String.valueOf(scoreData.length));
+        con.setUseCaches(false);
+        con.setDoOutput(true);
+        try (OutputStream os = con.getOutputStream()) {
+            os.write(scoreData);
         }
 
-        if (replaceEntry) {
-            XmlFileScoreboardEntry newEntry = new XmlFileScoreboardEntry();
-            newEntry.playerName = playerName;
-            newEntry.levelNumber = level.getOrdinal();
-            newEntry.level = level;
-            newEntry.score = score;
+        DebugWriter.INSTANCE.logMessage("LDR-HTTP", "Score write result %d", con.getResponseCode());
 
-            newEntries.add(newEntry);
-        }
+        XmlHttpScoreboard xs1 = (XmlHttpScoreboard) scoreboard;
+        XmlHttpScoreboard xs2 = (XmlHttpScoreboard) this.loadScoreboard(scoreboard.getLevelPack());
 
-        newEntries.toArray(s.entries = new XmlFileScoreboardEntry[newEntries.size()]);
-
-        try {
-            File scoreboardF = new File(this.root, String.format("%s.xml", s.levelPackId));
-
-            JAXBContext jaxbctx = JAXBContext.newInstance(XmlFileScoreboard.class);
-            Marshaller jaxb = jaxbctx.createMarshaller();
-            jaxb.marshal(s, scoreboardF);
-        } catch (Exception ex) {
-            DebugWriter.INSTANCE.logError("LDR-FILE", ex, "Error while loading scoreboard for level pack '%s'.", s.levelPackId);
-            throw new IOException(ex);
-        }
+        xs1.entries = xs2.entries;
     }
 
     @XmlRootElement(name = "entry")
     @XmlAccessorType(XmlAccessType.FIELD)
-    private static class XmlFileScoreboardEntry implements IScoreboardEntry {
+    private static class XmlHttpScoreboardEntry implements IScoreboardEntry {
 
         @XmlElement(name = "player")
         public String playerName;
@@ -160,14 +129,14 @@ public class FileScoreboardStore implements IScoreboardStore {
         }
     }
 
-    private static class XmlFileScoreboardTotalEntry implements IScoreboardTotalEntry {
+    private static class XmlHttpScoreboardTotalEntry implements IScoreboardTotalEntry {
 
         private final String playerName;
         private final boolean completedAll;
         private final int score;
         private final List<IScoreboardEntry> entries;
 
-        public XmlFileScoreboardTotalEntry(String playerName, boolean completedAll, int score, List<IScoreboardEntry> entries) {
+        public XmlHttpScoreboardTotalEntry(String playerName, boolean completedAll, int score, List<IScoreboardEntry> entries) {
             this.playerName = playerName;
             this.completedAll = completedAll;
             this.score = score;
@@ -205,21 +174,21 @@ public class FileScoreboardStore implements IScoreboardStore {
                 this.playerName = playerName;
             }
 
-            public XmlFileScoreboardTotalEntry toTotalEntry(Set<Integer> allLevels) {
-                return new XmlFileScoreboardTotalEntry(this.playerName, this.completedLevels.equals(allLevels), this.score, this.entries);
+            public XmlHttpScoreboardTotalEntry toTotalEntry(Set<Integer> allLevels) {
+                return new XmlHttpScoreboardTotalEntry(this.playerName, this.completedLevels.equals(allLevels), this.score, this.entries);
             }
         }
     }
 
     @XmlRootElement(name = "scoreboard")
     @XmlAccessorType(XmlAccessType.FIELD)
-    private static class XmlFileScoreboard implements IScoreboard {
+    private static class XmlHttpScoreboard implements IScoreboard {
 
         @XmlElement(name = "level-pack")
         public String levelPackId;
 
         @XmlElement(name = "entry")
-        public XmlFileScoreboardEntry[] entries;
+        public XmlHttpScoreboardEntry[] entries;
 
         private transient ILevelPack levelPack = null;
 
@@ -234,13 +203,13 @@ public class FileScoreboardStore implements IScoreboardStore {
                     .map(ILevel::getOrdinal)
                     .collect(Collectors.toSet());
 
-            Map<String, XmlFileScoreboardTotalEntry.Temporary> entries = new HashMap<>();
+            Map<String, XmlHttpScoreboardTotalEntry.Temporary> entries = new HashMap<>();
 
-            for (XmlFileScoreboardEntry entry : this.entries) {
+            for (XmlHttpScoreboardEntry entry : this.entries) {
                 String pname = entry.playerName;
-                XmlFileScoreboardTotalEntry.Temporary temp;
+                XmlHttpScoreboardTotalEntry.Temporary temp;
                 if (!entries.containsKey(pname))
-                    entries.put(pname, temp = new XmlFileScoreboardTotalEntry.Temporary(pname));
+                    entries.put(pname, temp = new XmlHttpScoreboardTotalEntry.Temporary(pname));
                 else
                     temp = entries.get(pname);
 

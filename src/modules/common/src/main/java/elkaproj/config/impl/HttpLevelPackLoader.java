@@ -47,7 +47,7 @@ class HttpLevelPackLoader implements ILevelPackLoader {
      */
     @Override
     public ILevelPack loadPack(String id) throws IOException {
-        URL meta = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "meta/" + id));
+        URL meta = new URL(this.endpointBase, Common.appendPath(this.endpointBase.getPath(), "meta/" + id));
 
         XmlHttpLevelPackMeta xlpm;
         try {
@@ -76,7 +76,7 @@ class HttpLevelPackLoader implements ILevelPackLoader {
     }
 
     private ILevel loadLevel(XmlHttpLevelMeta xdef, String packId) throws IOException {
-        URL lvldata = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "data/" + packId + "/" + xdef.ordinal));
+        URL lvldata = new URL(this.endpointBase, Common.appendPath(this.endpointBase.getPath(), "data/" + packId + "/" + xdef.ordinal));
 
         ArrayList<String> lines = new ArrayList<>();
 
@@ -117,16 +117,6 @@ class HttpLevelPackLoader implements ILevelPackLoader {
      */
     @Override
     public void close() throws IOException {
-    }
-
-    private String appendPath(String base, String appendix) {
-        if (appendix.startsWith("/"))
-            appendix = appendix.substring(1);
-
-        if (base.endsWith("/"))
-            return base + appendix;
-        else
-            return base + "/" + appendix;
     }
 
     private static class XmlHttpLevel implements ILevel {

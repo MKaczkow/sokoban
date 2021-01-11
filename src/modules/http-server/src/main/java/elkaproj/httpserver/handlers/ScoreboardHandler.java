@@ -91,6 +91,8 @@ public class ScoreboardHandler implements HttpHandler {
 
             httpExchange.sendResponseHeaders(204, -1);
             httpExchange.close();
+
+            DebugWriter.INSTANCE.logMessage("GDAT-HSW", "Created scoreboard: %s/%d %s %d", args.get("pack"), Integer.parseInt(args.get("level")), player, score);
         } catch (Exception ex) {
             DebugWriter.INSTANCE.logError("DB-SCORE", ex, "Couldn't write score.");
             this.errorHandlerService.getInstance(this.serviceProvider).write500(httpExchange);
@@ -134,6 +136,8 @@ public class ScoreboardHandler implements HttpHandler {
                     os.write(baos.toByteArray());
                 }
             }
+
+            DebugWriter.INSTANCE.logMessage("GDAT-HSR", "Retrieved scoreboard: %s/%d %s", pack, level, player);
         } catch (Exception ex) {
             DebugWriter.INSTANCE.logError("DB-SCORE", ex, "Couldn't read score.");
             this.errorHandlerService.getInstance(this.serviceProvider).write500(httpExchange);

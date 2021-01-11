@@ -64,7 +64,7 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
     @Override
     public IConfiguration load() {
         try {
-            URL url = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "configuration"));
+            URL url = new URL(this.endpointBase, Common.appendPath(this.endpointBase.getPath(), "configuration"));
 
             JAXBContext jaxbctx = JAXBContext.newInstance(XmlHttpConfiguration.class);
             Unmarshaller jaxb = jaxbctx.createUnmarshaller();
@@ -88,7 +88,7 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
     @Override
     public ILevelPackLoader getLevelPackLoader() {
         try {
-            URL url = new URL(this.endpointBase, this.appendPath(this.endpointBase.getPath(), "levels"));
+            URL url = new URL(this.endpointBase, Common.appendPath(this.endpointBase.getPath(), "levels"));
             return new HttpLevelPackLoader(url);
         } catch (MalformedURLException ex) {
             DebugWriter.INSTANCE.logError("HTTP-LDR", ex, "Failed to construct HTTP level loader.");
@@ -103,16 +103,6 @@ public class HttpConfigurationLoader implements IConfigurationLoader {
      */
     @Override
     public void close() throws IOException {
-    }
-
-    private String appendPath(String base, String appendix) {
-        if (appendix.startsWith("/"))
-            appendix = appendix.substring(1);
-
-        if (base.endsWith("/"))
-            return base + appendix;
-        else
-            return base + "/" + appendix;
     }
 
     /**

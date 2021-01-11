@@ -58,5 +58,7 @@ public class GameConfigurationHandler implements HttpHandler {
             DebugWriter.INSTANCE.logError("LDR-FILE", ex, "Error while sending configuration.");
             this.errorHandlerService.getInstance(this.serviceProvider).write500(httpExchange);
         }
+
+        DebugWriter.INSTANCE.logMessage("GDAT-CFG", "Sent configuration");
     }
 }

@@ -81,5 +81,7 @@ public class GameLevelMetaHandler implements HttpHandler {
             DebugWriter.INSTANCE.logError("LDR-FILE", ex, "Error while sending level pack.");
             this.errorHandlerService.getInstance(this.serviceProvider).write500(httpExchange);
         }
+
+        DebugWriter.INSTANCE.logMessage("GDAT-LMETA", "Sent level meta for %s", args.get("id"));
     }
 }

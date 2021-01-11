@@ -5,6 +5,7 @@ import elkaproj.config.commandline.CommandLineParser;
 import elkaproj.config.impl.FileConfigurationLoader;
 import elkaproj.config.impl.FileScoreboardStore;
 import elkaproj.config.impl.HttpConfigurationLoader;
+import elkaproj.config.impl.HttpScoreboardStore;
 import elkaproj.config.language.Language;
 import elkaproj.config.language.LanguageLoader;
 import elkaproj.ui.GuiRootFrame;
@@ -101,6 +102,9 @@ public class Entry {
                     try (ILevelPackLoader lvlloader = loader.getLevelPackLoader()) {
                         levelPack = lvlloader.loadPack(config.getLevelPackId());
                     }
+
+                    scoreboardStore = new HttpScoreboardStore(new URL(url, Common.appendPath(url.getPath(), "/scoreboard")));
+                    scoreboard = scoreboardStore.loadScoreboard(levelPack);
                 }
             } catch (Exception ex) {
                 DebugWriter.INSTANCE.logError("INIT", ex, "Failed to load configuration.");

@@ -237,6 +237,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
             return;
 
         try {
+            DebugWriter.INSTANCE.logMessage("GAME-UI", "Logging new score.");
             this.scoreboardStore.putEntry(this.scoreboard, previousLevel, this.playerName, previousLevelScore);
         } catch (IOException ex) {
             DebugWriter.INSTANCE.logError("GAME-UI", ex, "Failed to log score.");
