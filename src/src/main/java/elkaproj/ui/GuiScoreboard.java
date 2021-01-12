@@ -52,7 +52,7 @@ public class GuiScoreboard extends JPanel {
      *
      * @return scoreboard label
      */
-    private JLabel makeScoreboardLabel() {
+    private JLabel makeScoreboardLalorcabel() {
         JLabel highScoreLbl = new JLabel("<html><br> Scoreboard <br><br></html>");
         highScoreLbl.setHorizontalAlignment(JLabel.CENTER);
         highScoreLbl.setVerticalAlignment(JLabel.CENTER);
