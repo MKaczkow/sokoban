@@ -51,8 +51,12 @@ public class HttpScoreboardStore implements IScoreboardStore {
             }
 
             res.setLevelPack(levelPack);
-            for (XmlScoreboardImpl.XmlScoreboardEntry entry : res.entries) {
-                entry.setLevel(levelPack.getLevel(entry.levelNumber));
+            if (res.entries != null) {
+                for (XmlScoreboardImpl.XmlScoreboardEntry entry : res.entries) {
+                    entry.setLevel(levelPack.getLevel(entry.levelNumber));
+                }
+            } else {
+                res.entries = new XmlScoreboardImpl.XmlScoreboardEntry[0];
             }
 
             return res;
