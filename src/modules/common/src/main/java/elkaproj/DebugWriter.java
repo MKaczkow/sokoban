@@ -72,7 +72,9 @@ public class DebugWriter {
                 String exs = baos.toString(UTF8).trim().replace("\n", String.format("\n[%s] ", tag));
                 this.error.printf("[%s] %s%n", tag, exs);
             }
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            this.error.printf("Failed to log exception.%n");
+            ex.printStackTrace();
         }
     }
 
