@@ -47,7 +47,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
     private long lastInputLockout = 0;
 
-    private final Image tileFloor, tileWall, tileTarget, tileCrate, tilePlayer;
+    private final Image tileFloor, tileWall, tileTarget, tileCrate, tilePlayer, tileGhost, tilePull, tileStrength;
 
     private BufferStrategy bs;
     private final String pauseString, savingString;
@@ -82,6 +82,10 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         this.tileTarget = ImageIO.read(this.getClass().getResource("/tiles/target.png"));
         this.tileCrate = ImageIO.read(this.getClass().getResource("/tiles/crate.png"));
         this.tilePlayer = ImageIO.read(this.getClass().getResource("/tiles/player.png"));
+        this.tileGhost = ImageIO.read(this.getClass().getResource("/tiles/ghost.png"));
+        this.tilePull = ImageIO.read(this.getClass().getResource("/tiles/pull.png"));
+        this.tileStrength = ImageIO.read(this.getClass().getResource("/tiles/strength.png"));
+
     }
 
     private int computeOptimalFps() {
@@ -249,6 +253,18 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
             case TARGET_SPOT:
                 image = this.tileTarget;
+                break;
+
+            case GHOST:
+                image = this.tileGhost;
+                break;
+
+            case PULL:
+                image = this.tilePull;
+                break;
+
+            case STRENGTH:
+                image = this.tileStrength;
                 break;
         }
 

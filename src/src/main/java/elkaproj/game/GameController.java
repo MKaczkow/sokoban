@@ -202,6 +202,7 @@ public class GameController {
         this.numCrates = 0;
         this.numMatched = 0;
         this.acceptsInput = true;
+        this.powerUps = EnumSet.noneOf(GamePowerup.class);
 
         Dimensions levelSize = this.currentLevel.getSize();
         this.board = new LevelTile[levelSize.getHeight()][];
