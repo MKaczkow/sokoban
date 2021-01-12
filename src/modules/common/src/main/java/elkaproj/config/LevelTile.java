@@ -9,7 +9,10 @@ public enum LevelTile {
     FLOOR("Floor", '_'),
     PLAYER("Player", 'S'),
     CRATE("Crate", 'P'),
-    TARGET_SPOT("Target spot", 'X');
+    TARGET_SPOT("Target spot", 'X'),
+    GHOST("Ghost bonus activator", 'G'),
+    STRENGTH("Strength bonus activator", 'T'),
+    PULL("Pull bonus activator", 'U');
 
     private static final Map<Character, LevelTile> typeCache;
 
