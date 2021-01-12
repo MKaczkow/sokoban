@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -69,11 +70,11 @@ public class Entry {
         }
 
         // start http
-        InetSocketAddress addr = new InetSocketAddress(opts.getBindAddress(), opts.getPort());
         HttpServer http;
         try {
+            InetSocketAddress addr = new InetSocketAddress(InetAddress.getByName(opts.getBindAddress()), opts.getPort());
             http = HttpServer.create(addr, 0);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             DebugWriter.INSTANCE.logError("INIT", ex, "Couldn't initialize HTTP.");
             return;
         }
