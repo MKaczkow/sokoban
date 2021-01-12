@@ -405,6 +405,11 @@ public class GameController {
             if (!this.nextLevel())
                 this.stopGame(true);
         }
+
+        // check if newPos is power-up activator
+        if (this.board[ny][nx] == LevelTile.GHOST) { this.powerUps.add(GamePowerup.GHOST); }
+        if (this.board[ny][nx] == LevelTile.STRENGTH) { this.powerUps.add(GamePowerup.STRENGTH); }
+        if (this.board[ny][nx] == LevelTile.PULL) { this.powerUps.add(GamePowerup.PULL); }
     }
 
     // event dispatchers
