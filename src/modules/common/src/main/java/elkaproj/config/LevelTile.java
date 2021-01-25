@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum LevelTile {
+    NONE("Invalid tile", '0'),
     WALL("Wall", '#'),
     FLOOR("Floor", '_'),
     PLAYER("Player", 'S'),

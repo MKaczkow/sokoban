@@ -43,4 +43,24 @@ public enum GamePowerup {
     public String getDescription() {
         return this.description;
     }
+
+    /**
+     * Converts a level tile instance to a powerup instance.
+     * @param tile Tile to convert.
+     * @return Resulting powerup, if applicable.
+     */
+    public static GamePowerup fromTile(LevelTile tile) {
+        switch (tile) {
+            case GHOST:
+                return GHOST;
+
+            case PULL:
+                return PULL;
+
+            case STRENGTH:
+                return STRENGTH;
+        }
+
+        return null;
+    }
 }

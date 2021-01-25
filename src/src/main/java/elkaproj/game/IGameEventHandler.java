@@ -13,9 +13,10 @@ public interface IGameEventHandler {
      *
      * @param currentLevel   Level on which the game occurs.
      * @param board          Layout of the board.
+     * @param powerupTiles   Power-up tiles of the board.
      * @param crates         Crate locations.
      * @param playerPosition Player's current position.
      * @param deltas         Crate deltas.
      */
-    void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, boolean[][] crates, Dimensions playerPosition, Set<Dimensions.Delta> deltas);
+    void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, LevelTile[][] powerupTiles, boolean[][] crates, Dimensions playerPosition, Set<Dimensions.Delta> deltas);
 }

@@ -36,6 +36,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
     private boolean isRunning = false;
     private LevelTile[][] board = null;
+    private LevelTile[][] powerupTiles = null;
     private boolean[][] crates = null;
     private Dimensions playerPosition = null;
     private Dimensions.Delta playerDelta = null;
@@ -150,6 +151,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
             g.fillRect(0, 0, size.width, size.height);
 
             this.drawBoardLayer(g, this.board, tileStart, tileSize);
+            this.drawPowerupLayer(g, this.powerupTiles, tileStart, tileSize);
             this.drawCrateLayer(g,
                     this.crates,
                     this.playerDelta != null ? this.playerDelta : new Dimensions.Delta(this.playerPosition, this.playerPosition),
@@ -206,6 +208,18 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         for (int y = 0; y < this.levelSize.getHeight(); y++) {
             for (int x = 0; x < this.levelSize.getWidth(); x++) {
                 this.drawBoardTileAt(g, x, y, w, h, board[y][x], tileSize);
+            }
+        }
+    }
+
+    private void drawPowerupLayer(Graphics2D g, LevelTile[][] powerups, Dimensions tileStart, int tileSize) {
+        int w = tileStart.getWidth();
+        int h = tileStart.getHeight();
+
+        for (int y = 0; y < this.levelSize.getHeight(); y++) {
+            for (int x = 0; x < this.levelSize.getWidth(); x++) {
+                if (powerups[y][x] != LevelTile.NONE)
+                    this.drawBoardTileAt(g, x, y, w, h, powerups[y][x], tileSize);
             }
         }
     }
@@ -272,11 +286,12 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
     }
 
     @Override
-    public void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, boolean[][] crates, Dimensions playerPosition, Set<Dimensions.Delta> deltas) {
+    public void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, LevelTile[][] powerupTiles, boolean[][] crates, Dimensions playerPosition, Set<Dimensions.Delta> deltas) {
         try {
             this.boardLock.lock();
 
             this.board = board;
+            this.powerupTiles = powerupTiles;
             this.crates = crates;
             if (this.playerPosition != null)
                 this.playerDelta = new Dimensions.Delta(this.playerPosition, playerPosition);

@@ -31,6 +31,7 @@ public class GameController {
 
     private boolean gamePaused = false;
     private LevelTile[][] board = null;
+    private LevelTile[][] powerupTiles = null;
     private boolean[][] crates = null;
     private int numCrates = 0, numMatched = 0;
     private Dimensions playerPosition = null;
@@ -193,7 +194,7 @@ public class GameController {
         this.prepareLevel();
 
         this.onScoreUpdated(this.currentScore, this.totalScore);
-        this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, null);
+        this.onBoardUpdated(this.currentLevel, this.board, this.powerupTiles, this.crates, this.playerPosition, null);
 
         return true;
     }
@@ -206,11 +207,14 @@ public class GameController {
 
         Dimensions levelSize = this.currentLevel.getSize();
         this.board = new LevelTile[levelSize.getHeight()][];
+        this.powerupTiles = new LevelTile[levelSize.getHeight()][];
         this.crates = new boolean[levelSize.getHeight()][];
         LevelTile[][] levelTiles = this.currentLevel.getTiles();
+        EnumSet<GamePowerup> enabledPowerups = this.configuration.getActivePowerups();
 
         for (int y = 0; y < levelSize.getHeight(); y++) {
             this.board[y] = new LevelTile[levelSize.getWidth()];
+            this.powerupTiles[y] = new LevelTile[levelSize.getWidth()];
             this.crates[y] = new boolean[levelSize.getWidth()];
 
             for (int x = 0; x < levelSize.getWidth(); x++) {
@@ -219,6 +223,23 @@ public class GameController {
                 if (this.board[y][x] == LevelTile.CRATE) {
                     this.crates[y][x] = true;
                     this.numCrates++;
+                }
+
+                switch (this.board[y][x]) {
+                    case GHOST:
+                    case STRENGTH:
+                    case PULL:
+                        if (enabledPowerups.contains(GamePowerup.fromTile(this.board[y][x])))
+                            this.powerupTiles[y][x] = levelTiles[y][x];
+                        else
+                            this.powerupTiles[y][x] = LevelTile.NONE;
+
+                        this.board[y][x] = LevelTile.FLOOR;
+                        break;
+
+                    default:
+                        this.powerupTiles[y][x] = LevelTile.NONE;
+                        break;
                 }
 
                 if (this.board[y][x] == LevelTile.PLAYER) {
@@ -292,7 +313,7 @@ public class GameController {
             this.currentLives--;
             this.onLivesUpdated(this.getCurrentLives(), this.getMaxLives());
 
-            this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, null);
+            this.onBoardUpdated(this.currentLevel, this.board, this.powerupTiles, this.crates, this.playerPosition, null);
         } else {
             stopGame(false);
         }
@@ -399,18 +420,27 @@ public class GameController {
         this.playerPosition = newPos;
         this.currentScore++;
 
+        // check if newPos is power-up activator
+        if (this.powerupTiles[ny][nx] == LevelTile.GHOST) { this.powerUps.add(GamePowerup.GHOST); }
+        if (this.powerupTiles[ny][nx] == LevelTile.STRENGTH) { this.powerUps.add(GamePowerup.STRENGTH); }
+        if (this.powerupTiles[ny][nx] == LevelTile.PULL) { this.powerUps.add(GamePowerup.PULL); }
+
+        switch (this.powerupTiles[ny][nx]) {
+            case GHOST:
+            case STRENGTH:
+            case PULL:
+                this.powerUps.add(GamePowerup.fromTile(this.powerupTiles[ny][nx]));
+                this.powerupTiles[ny][nx] = LevelTile.NONE;
+                break;
+        }
+
         this.onScoreUpdated(this.currentScore, this.totalScore);
-        this.onBoardUpdated(this.currentLevel, this.board, this.crates, this.playerPosition, deltas);
+        this.onBoardUpdated(this.currentLevel, this.board, this.powerupTiles, this.crates, this.playerPosition, deltas);
 
         if (this.numMatched == this.numCrates) {
             if (!this.nextLevel())
                 this.stopGame(true);
         }
-
-        // check if newPos is power-up activator
-        if (this.board[ny][nx] == LevelTile.GHOST) { this.powerUps.add(GamePowerup.GHOST); }
-        if (this.board[ny][nx] == LevelTile.STRENGTH) { this.powerUps.add(GamePowerup.STRENGTH); }
-        if (this.board[ny][nx] == LevelTile.PULL) { this.powerUps.add(GamePowerup.PULL); }
     }
 
     // event dispatchers
@@ -456,9 +486,9 @@ public class GameController {
         }
     }
 
-    private void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, boolean[][] crates, Dimensions playerPosition, Set<Dimensions.Delta> deltas) {
+    private void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, LevelTile[][] powerupTiles, boolean[][] crates, Dimensions playerPosition, Set<Dimensions.Delta> deltas) {
         for (IGameEventHandler handler : this.gameEventHandlers) {
-            handler.onBoardUpdated(currentLevel, board, crates, playerPosition, deltas);
+            handler.onBoardUpdated(currentLevel, board, powerupTiles, crates, playerPosition, deltas);
         }
     }
 }
