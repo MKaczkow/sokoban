@@ -46,6 +46,7 @@ public enum GamePowerup {
 
     /**
      * Converts a level tile instance to a powerup instance.
+     *
      * @param tile Tile to convert.
      * @return Resulting powerup, if applicable.
      */

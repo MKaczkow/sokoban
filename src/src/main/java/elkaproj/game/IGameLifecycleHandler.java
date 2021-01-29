@@ -1,6 +1,9 @@
 package elkaproj.game;
 
+import elkaproj.config.GamePowerup;
 import elkaproj.config.ILevel;
+
+import java.util.EnumSet;
 
 /**
  * Implementations of this interface handle events about game lifecycle.
@@ -52,6 +55,14 @@ public interface IGameLifecycleHandler {
      * @param totalScore   Player's total score.
      */
     default void onScoreUpdated(int currentScore, int totalScore) {
+    }
+
+    /**
+     * Triggered whenever powerups are updated.
+     *
+     * @param activePowerups Player's currently-active powerups.
+     */
+    default void onPowerupsUpdated(EnumSet<GamePowerup> activePowerups) {
     }
 
     /**

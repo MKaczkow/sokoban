@@ -48,10 +48,12 @@ exit = Exit
 
 [status]
 idle = Idle...
-format = Level %d (named %s), Lives %d/%d, Score %d (level)/%d (total)
+format = Level %d (named %s), Lives %d/%d, Score %d (level)/%d (total), Active powerups: %s
+nopowerups = none
 
 # status.idle = ...
 # status.format = ...
+# status.nopowerups = ...
 
 [menu]
 [.file]

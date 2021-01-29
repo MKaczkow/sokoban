@@ -112,6 +112,15 @@ public class GameController {
     }
 
     /**
+     * Gets the current active powerups.
+     *
+     * @return Active powerups.
+     */
+    public EnumSet<GamePowerup> getActivePowerups() {
+        return this.powerUps.clone();
+    }
+
+    /**
      * Gets whether a game is active.
      *
      * @return Whether a game is active.
@@ -178,6 +187,15 @@ public class GameController {
         boolean success = this.nextLevelInternal();
         if (success)
             this.onNextLevel(previousLevel, previousScore, this.currentLevel, this.totalScore);
+
+        if (++this.currentStreak >= this.configuration.getLifeRecoveryThreshold()) {
+            this.currentLives += this.configuration.getLifeRecoveryCount();
+            this.currentLives = Math.min(this.currentLives, this.configuration.getMaxLives());
+            this.currentStreak = 0;
+            this.powerUps.clear();
+            this.onLivesUpdated(this.currentLives, this.configuration.getMaxLives());
+            this.onPowerupsUpdated(this.getActivePowerups());
+        }
 
         return success;
     }
@@ -308,14 +326,19 @@ public class GameController {
      * Resets level.
      */
     public void resetLevel() {
+        this.currentStreak = 0;
         this.prepareLevel();
-        if (currentLives >= 1) {
+
+        this.powerUps.clear();
+        this.onPowerupsUpdated(this.getActivePowerups());
+
+        if (currentLives > 0) {
             this.currentLives--;
             this.onLivesUpdated(this.getCurrentLives(), this.getMaxLives());
 
             this.onBoardUpdated(this.currentLevel, this.board, this.powerupTiles, this.crates, this.playerPosition, null);
         } else {
-            stopGame(false);
+            this.stopGame(false);
         }
     }
 
@@ -357,7 +380,8 @@ public class GameController {
                 break;
         }
 
-        Dimensions newPos = new Dimensions(pos.getWidth() + xm, pos.getHeight() + ym);
+        int ox = pos.getWidth(), oy = pos.getHeight();
+        Dimensions newPos = new Dimensions(ox + xm, oy + ym);
         int nx = newPos.getWidth(), ny = newPos.getHeight();
 
         // check if out of bounds
@@ -402,18 +426,18 @@ public class GameController {
         // check if PULL is used
         if (this.powerUps.contains(GamePowerup.PULL)) {
             // check if crate behind
-            if (this.crates[ny - ym][nx - xm]) {
+            if (this.crates[oy - ym][ox - xm]) {
                 this.powerUps.remove(GamePowerup.PULL);
                 // pull crate
-                this.crates[ny - ym][nx - xm] = false;
-                this.crates[ny][nx] = true;
+                this.crates[oy - ym][ox - xm] = false;
+                this.crates[oy][ox] = true;
 
-                deltas = new HashSet<>(1);
-                deltas.add(new Dimensions.Delta(new Dimensions(nx, ny), new Dimensions(nx + xm, ny + ym)));
+                deltas = deltas == null ? new HashSet<>(1) : deltas;
+                deltas.add(new Dimensions.Delta(new Dimensions(ox - xm, oy - ym), new Dimensions(ox, oy)));
 
-                if (this.board[ny + ym][nx + xm] == LevelTile.TARGET_SPOT && this.board[ny][nx] != LevelTile.TARGET_SPOT)
+                if (this.board[oy][ox] == LevelTile.TARGET_SPOT && this.board[oy - ym][ox - xm] != LevelTile.TARGET_SPOT)
                     this.numMatched++;
-                else if (this.board[ny + ym][nx + xm] != LevelTile.TARGET_SPOT && this.board[ny][nx] == LevelTile.TARGET_SPOT)
+                else if (this.board[oy][ox] != LevelTile.TARGET_SPOT && this.board[oy - ym][ox - xm] == LevelTile.TARGET_SPOT)
                     this.numMatched--;
             }
         }
@@ -421,16 +445,13 @@ public class GameController {
         this.currentScore++;
 
         // check if newPos is power-up activator
-        if (this.powerupTiles[ny][nx] == LevelTile.GHOST) { this.powerUps.add(GamePowerup.GHOST); }
-        if (this.powerupTiles[ny][nx] == LevelTile.STRENGTH) { this.powerUps.add(GamePowerup.STRENGTH); }
-        if (this.powerupTiles[ny][nx] == LevelTile.PULL) { this.powerUps.add(GamePowerup.PULL); }
-
         switch (this.powerupTiles[ny][nx]) {
             case GHOST:
             case STRENGTH:
             case PULL:
                 this.powerUps.add(GamePowerup.fromTile(this.powerupTiles[ny][nx]));
                 this.powerupTiles[ny][nx] = LevelTile.NONE;
+                this.onPowerupsUpdated(this.getActivePowerups());
                 break;
         }
 
@@ -471,6 +492,12 @@ public class GameController {
     private void onScoreUpdated(int currentScore, int totalScore) {
         for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
             handler.onScoreUpdated(currentScore, totalScore);
+        }
+    }
+
+    private void onPowerupsUpdated(EnumSet<GamePowerup> activePowerups) {
+        for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
+            handler.onPowerupsUpdated(activePowerups);
         }
     }
 

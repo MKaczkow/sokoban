@@ -1,5 +1,6 @@
 package elkaproj.ui;
 
+import elkaproj.config.GamePowerup;
 import elkaproj.config.ILevel;
 import elkaproj.config.language.Language;
 import elkaproj.game.GameController;
@@ -8,6 +9,8 @@ import elkaproj.game.IGameLifecycleHandler;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
+import java.util.EnumSet;
+import java.util.stream.Collectors;
 
 /**
  * Maintains the status panel on the bottom of the window.
@@ -16,10 +19,12 @@ public class GuiStatusPanel extends JPanel implements IGameLifecycleHandler {
 
     private static final String STATUS_FORMAT_L10N_ID = "status.format";
     private static final String STATUS_IDLE_L10N_ID = "status.idle";
+    private static final String STATUS_NOPOWERUPS_L10N_ID = "status.nopowerups";
 
     private final GameController gameController;
-    private final String statusFormat; // level number, level, current lives, max lives, level score, total score
+    private final String statusFormat; // level number, level, current lives, max lives, level score, total score, active powerups
     private final String statusIdle;
+    private final String statusNoPowerups;
 
     private final JLabel status;
 
@@ -36,6 +41,7 @@ public class GuiStatusPanel extends JPanel implements IGameLifecycleHandler {
         this.gameController = gameController;
         this.statusFormat = language.getValue(STATUS_FORMAT_L10N_ID);
         this.statusIdle = language.getValue(STATUS_IDLE_L10N_ID);
+        this.statusNoPowerups = language.getValue(STATUS_NOPOWERUPS_L10N_ID);
 
         this.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
         this.setPreferredSize(new Dimension(parent.width, 24));
@@ -55,7 +61,8 @@ public class GuiStatusPanel extends JPanel implements IGameLifecycleHandler {
                 currentLives,
                 this.gameController.getMaxLives(),
                 0,
-                0));
+                0,
+                this.gameController.getActivePowerups()));
     }
 
     @Override
@@ -69,7 +76,8 @@ public class GuiStatusPanel extends JPanel implements IGameLifecycleHandler {
                 this.gameController.getCurrentLives(),
                 this.gameController.getMaxLives(),
                 0,
-                totalScore));
+                totalScore,
+                this.gameController.getActivePowerups()));
     }
 
     @Override
@@ -78,7 +86,8 @@ public class GuiStatusPanel extends JPanel implements IGameLifecycleHandler {
                 currentLives,
                 maxLives,
                 this.gameController.getCurrentScore(),
-                this.gameController.getTotalScore()));
+                this.gameController.getTotalScore(),
+                this.gameController.getActivePowerups()));
     }
 
     @Override
@@ -87,10 +96,27 @@ public class GuiStatusPanel extends JPanel implements IGameLifecycleHandler {
                 this.gameController.getCurrentLives(),
                 this.gameController.getMaxLives(),
                 currentScore,
-                totalScore));
+                totalScore,
+                this.gameController.getActivePowerups()));
     }
 
-    private String formatStatus(ILevel level, int currentLives, int maxLives, int currentScore, int maxScore) {
-        return String.format(this.statusFormat, level.getOrdinal(), level.getName(), currentLives, maxLives, currentScore, maxScore);
+    @Override
+    public void onPowerupsUpdated(EnumSet<GamePowerup> activePowerups) {
+        this.status.setText(this.formatStatus(this.gameController.getCurrentLevel(),
+                this.gameController.getCurrentLives(),
+                this.gameController.getMaxLives(),
+                this.gameController.getCurrentScore(),
+                this.gameController.getTotalScore(),
+                activePowerups));
+    }
+
+    private String formatStatus(ILevel level, int currentLives, int maxLives, int currentScore, int maxScore, EnumSet<GamePowerup> activePowerups) {
+        String powerups = activePowerups != null && !activePowerups.isEmpty()
+                ? activePowerups.stream()
+                .map(Enum::toString)
+                .collect(Collectors.joining(", "))
+                : this.statusNoPowerups;
+
+        return String.format(this.statusFormat, level.getOrdinal(), level.getName(), currentLives, maxLives, currentScore, maxScore, powerups);
     }
 }
