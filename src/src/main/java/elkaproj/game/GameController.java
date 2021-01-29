@@ -473,7 +473,7 @@ public class GameController {
 
     private void onGameStopped(int totalScore, boolean completed) {
         for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
-            handler.onGameStopped(this.totalScore, completed);
+            handler.onGameStopped(totalScore, completed);
         }
     }
 
