@@ -60,12 +60,15 @@ public class DebugWriter {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             try (PrintStream ps = new PrintStream(baos, true, UTF8)) {
                 // fix \r\n
-                Field f = ps.getClass().getDeclaredField("textOut");
-                f.setAccessible(true);
-                Object bw = f.get(ps);
-                f = bw.getClass().getDeclaredField("lineSeparator");
-                f.setAccessible(true);
-                f.set(bw, "\n");
+                try {
+                    Field f = ps.getClass().getDeclaredField("textOut");
+                    f.setAccessible(true);
+                    Object bw = f.get(ps);
+                    f = bw.getClass().getDeclaredField("lineSeparator");
+                    f.setAccessible(true);
+                    f.set(bw, "\n");
+                } catch (Exception ignored) {
+                }
 
                 throwable.printStackTrace(ps);
 
