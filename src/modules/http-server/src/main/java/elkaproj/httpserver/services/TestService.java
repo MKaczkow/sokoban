@@ -10,6 +10,12 @@ public class TestService {
     private static final byte[] BYTES = "OK!".getBytes(StandardCharsets.UTF_8);
 
     /**
+     * Initializes a test service.
+     */
+    public TestService() {
+    }
+
+    /**
      * Gets bytes for OK! string.
      *
      * @return Bytes for OK! string.

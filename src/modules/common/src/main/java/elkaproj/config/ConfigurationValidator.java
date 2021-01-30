@@ -7,6 +7,9 @@ import java.util.EnumSet;
  */
 public class ConfigurationValidator {
 
+    private ConfigurationValidator() {
+    }
+
     /**
      * Validates given configuration object and returns whether it is valid.
      *

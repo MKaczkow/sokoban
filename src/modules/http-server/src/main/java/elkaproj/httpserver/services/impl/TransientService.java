@@ -12,6 +12,11 @@ public class TransientService<T> implements IService<T> {
 
     private final Class<T> klass;
 
+    /**
+     * Creates a new transient service of a given type.
+     *
+     * @param klass Type of the service.
+     */
     public TransientService(Class<T> klass) {
         this.klass = klass;
     }

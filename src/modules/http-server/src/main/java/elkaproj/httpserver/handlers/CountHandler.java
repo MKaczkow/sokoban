@@ -10,7 +10,7 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 
 /**
- * Returns the total number of rows in the
+ * Returns the total number of rows in the scoreboard database.
  */
 @Handler("/count")
 public class CountHandler implements HttpHandler {

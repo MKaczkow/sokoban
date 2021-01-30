@@ -13,11 +13,22 @@ public class SingletonService<T> implements IService<T> {
     private final Class<T> klass;
     private T instance;
 
+    /**
+     * Creates a new uninitialized singleton service from a given type.
+     *
+     * @param klass Type of the service.
+     */
     public SingletonService(Class<T> klass) {
         this.klass = klass;
         this.instance = null;
     }
 
+    /**
+     * Creates a new initialized singleton service from a given instance and type.
+     *
+     * @param instance Service instance.
+     * @param klass    Type of the service.
+     */
     public SingletonService(T instance, Class<T> klass) {
         this.klass = klass;
         this.instance = instance;

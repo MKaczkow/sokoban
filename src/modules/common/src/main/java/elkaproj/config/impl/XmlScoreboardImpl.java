@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class XmlScoreboardImpl {
+class XmlScoreboardImpl {
 
     @XmlRootElement(name = "entry")
     @XmlAccessorType(XmlAccessType.FIELD)

@@ -46,6 +46,9 @@ public class Entry {
      */
     public static Font IBMPlexBoldItalic;
 
+    private Entry() {
+    }
+
     public static void main(String[] args) {
         // parse commandline options
         CommandLineParser<CommandLineOptions> clp = new CommandLineParser<>(CommandLineOptions.class);
