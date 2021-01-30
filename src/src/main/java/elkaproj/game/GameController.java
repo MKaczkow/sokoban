@@ -19,6 +19,7 @@ public class GameController {
 
     private final ArrayList<IGameLifecycleHandler> lifecycleHandlers = new ArrayList<>();
     private final ArrayList<IGameEventHandler> gameEventHandlers = new ArrayList<>();
+    private final ArrayList<ILevelScoreUpdateHandler> levelScoreUpdateHandlers = new ArrayList<>();
 
     private int currentLives = 0;
     private int currentStreak = 0;
@@ -176,6 +177,24 @@ public class GameController {
     }
 
     /**
+     * Adds a score update handler.
+     *
+     * @param scoreUpdateHandler Score update handler.
+     */
+    public void addLevelScoreEventHandler(ILevelScoreUpdateHandler scoreUpdateHandler) {
+        this.levelScoreUpdateHandlers.add(scoreUpdateHandler);
+    }
+
+    /**
+     * Removes a score update handler.
+     *
+     * @param scoreUpdateHandler Score update handler.
+     */
+    public void removeLevelScoreUpdateHandler(ILevelScoreUpdateHandler scoreUpdateHandler) {
+        this.levelScoreUpdateHandlers.remove(scoreUpdateHandler);
+    }
+
+    /**
      * Moves to the next level.
      *
      * @return Whether a new level was loaded. If false, it means there are no more levels available.
@@ -183,6 +202,7 @@ public class GameController {
     public boolean nextLevel() {
         ILevel previousLevel = this.currentLevel;
         int previousScore = this.currentScore;
+        this.onLevelScoreUpdated(previousLevel, previousScore);
 
         boolean success = this.nextLevelInternal();
         if (success)
@@ -473,8 +493,9 @@ public class GameController {
         this.onBoardUpdated(this.currentLevel, this.board, this.powerupTiles, this.crates, this.playerPosition, deltas);
 
         if (this.numMatched == this.numCrates) {
-            if (!this.nextLevel())
+            if (!this.nextLevel()) {
                 this.stopGame(true);
+            }
         }
     }
 
@@ -530,6 +551,12 @@ public class GameController {
     private void onBoardUpdated(ILevel currentLevel, LevelTile[][] board, LevelTile[][] powerupTiles, boolean[][] crates, Dimensions playerPosition, Set<Dimensions.Delta> deltas) {
         for (IGameEventHandler handler : this.gameEventHandlers) {
             handler.onBoardUpdated(currentLevel, board, powerupTiles, crates, playerPosition, deltas);
+        }
+    }
+
+    private void onLevelScoreUpdated(ILevel level, int score) {
+        for (ILevelScoreUpdateHandler handler : this.levelScoreUpdateHandlers) {
+            handler.onLevelScoreUpdated(level, score);
         }
     }
 }

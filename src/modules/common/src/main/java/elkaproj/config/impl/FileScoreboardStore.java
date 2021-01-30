@@ -87,10 +87,10 @@ public class FileScoreboardStore implements IScoreboardStore {
         boolean replaceEntry = true;
         for (XmlScoreboardImpl.XmlScoreboardEntry entry : s.entries) {
             if (entry.levelNumber == level.getOrdinal() && entry.playerName.equals(playerName)) {
-                if (score > entry.score) {
+                if (score >= entry.score)
                     replaceEntry = false;
+                else
                     continue;
-                }
             }
 
             newEntries.add(entry);

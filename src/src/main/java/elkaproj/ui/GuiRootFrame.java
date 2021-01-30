@@ -5,6 +5,7 @@ import elkaproj.config.*;
 import elkaproj.config.language.Language;
 import elkaproj.game.GameController;
 import elkaproj.game.IGameLifecycleHandler;
+import elkaproj.game.ILevelScoreUpdateHandler;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -18,7 +19,7 @@ import java.io.IOException;
 /**
  * Main window class of the game. Holds all other components.
  */
-public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecycleHandler {
+public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecycleHandler, ILevelScoreUpdateHandler {
 
     public static final String STRING_WIN_DIALOG_TITLE_L10N_ID = "dialogs.win.title";
     public static final String STRING_WIN_DIALOG_CONTENTS_L10N_ID = "dialogs.win.message";
@@ -75,6 +76,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
         this.gameController = new GameController(configuration, levelPack);
         this.gameController.addLifecycleHandler(this);
+        this.gameController.addLevelScoreEventHandler(this);
 
         // set the listener so we can close the application
         this.addWindowListener(new GameFrameWindowAdapter(this));
@@ -103,7 +105,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
         this.scoreboardStore = scoreboardStore;
         this.scoreboard = scoreboard;
-        this.scoreboardView = new GuiScoreboard(this, this.scoreboardStore, this.scoreboard);
+        this.scoreboardView = new GuiScoreboard(this, this.scoreboardStore, this.scoreboard, levelPack, this.language);
     }
 
     private void localize(Component[] components) {
@@ -234,15 +236,13 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
     }
 
     @Override
-    public void onNextLevel(ILevel previousLevel, int previousLevelScore, ILevel currentLevel, int totalScore) {
-        if (previousLevel == null)
-            return;
-
+    public void onLevelScoreUpdated(ILevel level, int score) {
         this.gameView.showSaving(true);
         new Thread(() -> {
             try {
                 DebugWriter.INSTANCE.logMessage("GAME-UI", "Logging new score.");
-                this.scoreboardStore.putEntry(this.scoreboard, previousLevel, this.playerName, previousLevelScore);
+                this.scoreboardStore.putEntry(this.scoreboard, level, this.playerName, score);
+                this.scoreboardView.refreshScoreboard();
             } catch (Exception ex) {
                 DebugWriter.INSTANCE.logError("GAME-UI", ex, "Failed to log score.");
             } finally {
