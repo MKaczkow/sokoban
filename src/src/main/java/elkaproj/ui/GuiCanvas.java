@@ -86,7 +86,6 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
         this.tileGhost = ImageIO.read(this.getClass().getResource("/tiles/ghost.png"));
         this.tilePull = ImageIO.read(this.getClass().getResource("/tiles/pull.png"));
         this.tileStrength = ImageIO.read(this.getClass().getResource("/tiles/strength.png"));
-
     }
 
     private int computeOptimalFps() {

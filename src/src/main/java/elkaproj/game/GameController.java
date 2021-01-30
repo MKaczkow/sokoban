@@ -404,17 +404,31 @@ public class GameController {
             if (this.crates[ny + ym][nx + xm] && !(this.powerUps.contains(GamePowerup.STRENGTH)))
                 return;
 
+            deltas = new HashSet<>(1);
+
             // check if STRENGTH needed
             if (this.crates[ny + ym][nx + xm]) {
+                // check if stacked wall
+                if (this.board[ny + 2 * ym][nx + 2 * xm] == LevelTile.WALL)
+                    return;
+
+                // check if stacked crate
+                if (this.crates[ny + 2 * ym][nx + 2 * xm])
+                    return;
+
                 this.crates[ny + 2 * ym][nx + 2 * xm] = true;
                 this.powerUps.remove(GamePowerup.STRENGTH);
+                deltas.add(new Dimensions.Delta(new Dimensions(nx + xm, ny + ym), new Dimensions(nx + 2 * xm, ny + 2 * ym)));
+
+                if (this.board[ny + 2 * ym][nx + 2 * xm] == LevelTile.TARGET_SPOT && this.board[ny + ym][nx + xm] != LevelTile.TARGET_SPOT)
+                    this.numMatched++;
+                else if (this.board[ny + 2 * ym][nx + 2 * xm] != LevelTile.TARGET_SPOT && this.board[ny + ym][nx + xm] == LevelTile.TARGET_SPOT)
+                    this.numMatched--;
             }
 
             // push crate
             this.crates[ny][nx] = false;
             this.crates[ny + ym][nx + xm] = true;
-
-            deltas = new HashSet<>(1);
             deltas.add(new Dimensions.Delta(new Dimensions(nx, ny), new Dimensions(nx + xm, ny + ym)));
 
             if (this.board[ny + ym][nx + xm] == LevelTile.TARGET_SPOT && this.board[ny][nx] != LevelTile.TARGET_SPOT)
