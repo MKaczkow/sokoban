@@ -20,16 +20,17 @@ public class GameController {
     private final ArrayList<IGameLifecycleHandler> lifecycleHandlers = new ArrayList<>();
     private final ArrayList<IGameEventHandler> gameEventHandlers = new ArrayList<>();
     private final ArrayList<ILevelScoreUpdateHandler> levelScoreUpdateHandlers = new ArrayList<>();
+    private final ArrayList<ITimerUpdateHandler> timerUpdateHandlers = new ArrayList<>();
 
     private int currentLives = 0;
     private int currentStreak = 0;
     private int currentLevelNumber = -1;
+    private boolean currentLevelReset = false;
     private ILevel currentLevel = null;
     private int currentScore = 0;
     private int totalScore = 0;
     private EnumSet<GamePowerup> powerUps;
-    private GameClock gameClock;
-
+    private final GameClock gameClock;
     private boolean gamePaused = false;
     private LevelTile[][] board = null;
     private LevelTile[][] powerupTiles = null;
@@ -47,6 +48,7 @@ public class GameController {
     public GameController(IConfiguration configuration, ILevelPack levelPack) {
         this.configuration = configuration;
         this.levelPack = levelPack;
+        this.gameClock = new GameClock();
     }
 
     /**
@@ -195,26 +197,58 @@ public class GameController {
     }
 
     /**
+     * Adds a score update handler.
+     *
+     * @param timerUpdateHandler Timer update handler.
+     */
+    public void addTimerUpdateHandler(ITimerUpdateHandler timerUpdateHandler) {
+        this.timerUpdateHandlers.add(timerUpdateHandler);
+    }
+
+    /**
+     * Removes a score update handler.
+     *
+     * @param timerUpdateHandler Timer update handler.
+     */
+    public void removeTimerUpdateHandler(ITimerUpdateHandler timerUpdateHandler) {
+        this.timerUpdateHandlers.remove(timerUpdateHandler);
+    }
+
+    /**
      * Moves to the next level.
      *
      * @return Whether a new level was loaded. If false, it means there are no more levels available.
      */
     public boolean nextLevel() {
+        this.gameClock.stop(false);
+        long elapsed = this.gameClock.getElapsedSeconds();
         ILevel previousLevel = this.currentLevel;
         int previousScore = this.currentScore;
-        this.onLevelScoreUpdated(previousLevel, previousScore);
+
+        if (previousLevel != null) {
+            if (elapsed < previousLevel.getBonusTimeThreshold() && !this.currentLevelReset)
+                previousScore = (int) Math.ceil(previousScore * 0.9);
+            else if (elapsed > previousLevel.getPenaltyTimeThreshold())
+                previousScore = (int) (previousScore * 1.1);
+
+            this.currentScore = previousScore;
+            this.onLevelScoreUpdated(previousLevel, previousScore);
+        }
 
         boolean success = this.nextLevelInternal();
-        if (success)
+        if (success) {
+            this.gameClock.reset();
+            this.gameClock.start();
             this.onNextLevel(previousLevel, previousScore, this.currentLevel, this.totalScore);
 
-        if (++this.currentStreak >= this.configuration.getLifeRecoveryThreshold()) {
-            this.currentLives += this.configuration.getLifeRecoveryCount();
-            this.currentLives = Math.min(this.currentLives, this.configuration.getMaxLives());
-            this.currentStreak = 0;
-            this.powerUps.clear();
-            this.onLivesUpdated(this.currentLives, this.configuration.getMaxLives());
-            this.onPowerupsUpdated(this.getActivePowerups());
+            if (++this.currentStreak >= this.configuration.getLifeRecoveryThreshold()) {
+                this.currentLives += this.configuration.getLifeRecoveryCount();
+                this.currentLives = Math.min(this.currentLives, this.configuration.getMaxLives());
+                this.currentStreak = 0;
+                this.powerUps.clear();
+                this.onLivesUpdated(this.currentLives, this.configuration.getMaxLives());
+                this.onPowerupsUpdated(this.getActivePowerups());
+            }
         }
 
         return success;
@@ -228,6 +262,7 @@ public class GameController {
         this.totalScore += this.currentScore;
         this.currentScore = 0;
         this.acceptsInput = true;
+        this.currentLevelReset = false;
 
         this.prepareLevel();
 
@@ -302,9 +337,14 @@ public class GameController {
         this.currentStreak = 0;
         this.currentScore = 0;
         this.totalScore = 0;
+        this.currentLevelReset = false;
         this.powerUps = EnumSet.noneOf(GamePowerup.class);
+        this.gameClock.reset();
+        this.gameClock.start();
         this.onGameStarted(this.currentLevel, this.currentLives);
         this.onLivesUpdated(this.currentLives, this.configuration.getMaxLives());
+        this.onPowerupsUpdated(this.getActivePowerups());
+        this.onScoreUpdated(this.currentScore, this.totalScore);
     }
 
     /**
@@ -336,8 +376,10 @@ public class GameController {
 
         DebugWriter.INSTANCE.logMessage("GAME", "Pause status: %b", this.gamePaused);
         if (this.gamePaused) {
+            this.gameClock.stop(true);
             this.onGamePaused();
         } else {
+            this.gameClock.start();
             this.onGameResumed();
         }
     }
@@ -352,7 +394,11 @@ public class GameController {
         this.powerUps.clear();
         this.onPowerupsUpdated(this.getActivePowerups());
 
-        if (currentLives > 0) {
+        this.currentLevelReset = true;
+
+        this.gameClock.reset();
+
+        if (this.currentLives > 0) {
             this.currentLives--;
             this.onLivesUpdated(this.getCurrentLives(), this.getMaxLives());
 
@@ -499,6 +545,22 @@ public class GameController {
         }
     }
 
+    /**
+     * Ticks game events.
+     */
+    public void tick() {
+        if (this.currentLevel == null)
+            return;
+
+        long elapsed = this.gameClock.getElapsedSeconds();
+        this.onTimerUpdated(elapsed,
+                this.currentLevel.getBonusTimeThreshold(),
+                this.currentLevel.getPenaltyTimeThreshold(),
+                this.currentLevel.getFailTimeThreshold());
+        if (elapsed > this.currentLevel.getFailTimeThreshold())
+            this.resetLevel();
+    }
+
     // event dispatchers
     private void onGameStarted(ILevel currentLevel, int currentLives) {
         for (IGameLifecycleHandler handler : this.lifecycleHandlers) {
@@ -557,6 +619,12 @@ public class GameController {
     private void onLevelScoreUpdated(ILevel level, int score) {
         for (ILevelScoreUpdateHandler handler : this.levelScoreUpdateHandlers) {
             handler.onLevelScoreUpdated(level, score);
+        }
+    }
+
+    private void onTimerUpdated(long current, long bonus, long penalty, long fail) {
+        for (ITimerUpdateHandler handler : this.timerUpdateHandlers) {
+            handler.onTimerUpdated(current, bonus, penalty, fail);
         }
     }
 }

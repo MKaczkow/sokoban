@@ -402,6 +402,8 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
                     if (!this.guiCanvas.gameController.isGameRunning() || !this.guiCanvas.isRunning)
                         continue;
 
+                    this.guiCanvas.gameController.tick();
+
                     BufferStrategy bs = this.guiCanvas.bs;
                     if (bs == null)
                         continue;

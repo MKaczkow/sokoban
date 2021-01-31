@@ -1,51 +1,61 @@
 package elkaproj.game;
 
-import elkaproj.config.IConfiguration;
-import elkaproj.config.ILevelPack;
+import org.apache.commons.lang3.time.StopWatch;
 
-import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * Handles counting player level solve time.
+ */
 public class GameClock {
 
-    Timer timer;
-
-    private final IConfiguration configuration;
-    private final ILevelPack levelPack;
-
-    private int bonusTimeThreshold;
-    private int penaltyTimeThreshold;
-    private int failTimeThreshold;
+    private final StopWatch stopWatch;
 
     /**
      * Initializes the clock.
-     *
-     * @param configuration Configuration to use for this game.
-     * @param levelPack     Level pack the player will play through.
      */
-    public GameClock(IConfiguration configuration, ILevelPack levelPack) {
-        this.configuration = configuration;
-        this.levelPack = levelPack;
-        // TODO: set time thresholds from configuration files, but how??
+    public GameClock() {
+        this.stopWatch = new StopWatch();
     }
 
     /**
-     * Starts clock, should be executed at the beggining of each level and after resuming game.
+     * Starts clock, should be executed at the beginning of each level and after resuming game.
      */
-    public void startClock() {
-
+    public void start() {
+        if (this.stopWatch.isSuspended())
+            this.stopWatch.resume();
+        else
+            this.stopWatch.start();
     }
 
     /**
      * Stops clock, should be executed when pausing or finishing level
+     *
+     * @param pause Whether the stop is a pause.
      */
-    public void stopClock() {
+    public void stop(boolean pause) {
+        if (!this.stopWatch.isStarted())
+            return;
 
+        if (pause)
+            this.stopWatch.suspend();
+        else
+            this.stopWatch.stop();
     }
 
     /**
-     * Resets clock, should be executed beggining of each level.
+     * Resets clock, should be executed beginning of each level.
      */
-    public void resetClock() {
+    public void reset() {
+        this.stopWatch.reset();
+    }
 
+    /**
+     * Gets the amount of seconds that elapsed, excluding pauses.
+     *
+     * @return Number of seconds that elapsed since the timer was started, excluding pauses.
+     */
+    public long getElapsedSeconds() {
+        return this.stopWatch.getTime(TimeUnit.SECONDS);
     }
 }
