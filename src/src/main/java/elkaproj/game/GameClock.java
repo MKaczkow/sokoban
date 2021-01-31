@@ -24,7 +24,7 @@ public class GameClock {
     public void start() {
         if (this.stopWatch.isSuspended())
             this.stopWatch.resume();
-        else
+        else if (!this.stopWatch.isStarted())
             this.stopWatch.start();
     }
 

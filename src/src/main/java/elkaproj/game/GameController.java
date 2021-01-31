@@ -413,8 +413,14 @@ public class GameController {
 
         this.currentLevelReset = true;
 
-        if (this.configuration.areTimersActive())
+        this.acceptsInput = !this.gamePaused;
+
+        if (this.configuration.areTimersActive()) {
             this.gameClock.reset();
+
+            if (!this.gamePaused)
+                this.gameClock.start();
+        }
 
         if (this.currentLives > 0) {
             this.currentLives--;
@@ -577,8 +583,13 @@ public class GameController {
                     this.currentLevel.getBonusTimeThreshold(),
                     this.currentLevel.getPenaltyTimeThreshold(),
                     this.currentLevel.getFailTimeThreshold());
-            if (elapsed > this.currentLevel.getFailTimeThreshold())
-                this.resetLevel();
+
+            if (elapsed > this.currentLevel.getFailTimeThreshold()) {
+                this.acceptsInput = false;
+                this.gameClock.stop(false);
+                this.gameClock.reset();
+                this.onFailTimerExceeded();
+            }
         }
     }
 
@@ -646,6 +657,12 @@ public class GameController {
     private void onTimerUpdated(long current, long bonus, long penalty, long fail) {
         for (ITimerUpdateHandler handler : this.timerUpdateHandlers) {
             handler.onTimerUpdated(current, bonus, penalty, fail);
+        }
+    }
+
+    private void onFailTimerExceeded() {
+        for (ITimerUpdateHandler handler : this.timerUpdateHandlers) {
+            handler.onFailTimerExceeded();
         }
     }
 }

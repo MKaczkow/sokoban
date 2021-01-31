@@ -13,5 +13,12 @@ public interface ITimerUpdateHandler {
      * @param penalty Penalty time threshold.
      * @param fail    Fail time threshold.
      */
-    void onTimerUpdated(long current, long bonus, long penalty, long fail);
+    default void onTimerUpdated(long current, long bonus, long penalty, long fail) {
+    }
+
+    /**
+     * Triggered whenever the fail timer is exceeded.
+     */
+    default void onFailTimerExceeded() {
+    }
 }

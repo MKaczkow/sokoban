@@ -6,6 +6,7 @@ import elkaproj.config.language.Language;
 import elkaproj.game.GameController;
 import elkaproj.game.IGameLifecycleHandler;
 import elkaproj.game.ILevelScoreUpdateHandler;
+import elkaproj.game.ITimerUpdateHandler;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -19,12 +20,14 @@ import java.io.IOException;
 /**
  * Main window class of the game. Holds all other components.
  */
-public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecycleHandler, ILevelScoreUpdateHandler {
+public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecycleHandler, ILevelScoreUpdateHandler, ITimerUpdateHandler {
 
     public static final String STRING_WIN_DIALOG_TITLE_L10N_ID = "dialogs.win.title";
     public static final String STRING_WIN_DIALOG_CONTENTS_L10N_ID = "dialogs.win.message";
     public static final String STRING_AUTHORS_DIALOG_TITLE_L10N_ID = "dialogs.authors.title";
     public static final String STRING_AUTHORS_DIALOG_CONTENTS_L10N_ID = "dialogs.authors.message";
+    public static final String STRING_SLOTH_DIALOG_TITLE_L10N_ID = "dialogs.sloth.title";
+    public static final String STRING_SLOTH_DIALOG_CONTENTS_L10N_ID = "dialogs.sloth.message";
 
     public static final String COMMAND_EXIT = "PROZEkt_exit";
     public static final String COMMAND_PAUSE_RESUME = "PROZEkt_pause_resume";
@@ -77,6 +80,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
         this.gameController = new GameController(configuration, levelPack);
         this.gameController.addLifecycleHandler(this);
         this.gameController.addLevelScoreEventHandler(this);
+        this.gameController.addTimerUpdateHandler(this);
 
         // set the listener so we can close the application
         this.addWindowListener(new GameFrameWindowAdapter(this));
@@ -249,6 +253,18 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
                 this.gameView.showSaving(false);
             }
         }).start();
+    }
+
+    @Override
+    public void onFailTimerExceeded() {
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(this,
+                    this.language.getValue(STRING_SLOTH_DIALOG_CONTENTS_L10N_ID),
+                    this.language.getValue(STRING_SLOTH_DIALOG_TITLE_L10N_ID),
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            this.gameController.resetLevel();
+        });
     }
 
     private void setActiveView(Component component) {
