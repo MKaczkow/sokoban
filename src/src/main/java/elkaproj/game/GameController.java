@@ -220,25 +220,34 @@ public class GameController {
      * @return Whether a new level was loaded. If false, it means there are no more levels available.
      */
     public boolean nextLevel() {
-        this.gameClock.stop(false);
-        long elapsed = this.gameClock.getElapsedSeconds();
+        if (this.configuration.areTimersActive())
+            this.gameClock.stop(false);
+
         ILevel previousLevel = this.currentLevel;
         int previousScore = this.currentScore;
 
         if (previousLevel != null) {
-            if (elapsed < previousLevel.getBonusTimeThreshold() && !this.currentLevelReset)
-                previousScore = (int) Math.ceil(previousScore * 0.9);
-            else if (elapsed > previousLevel.getPenaltyTimeThreshold())
-                previousScore = (int) (previousScore * 1.1);
+            if (configuration.areTimersActive()) {
+                long elapsed = this.gameClock.getElapsedSeconds();
 
-            this.currentScore = previousScore;
+                if (elapsed < previousLevel.getBonusTimeThreshold() && !this.currentLevelReset)
+                    previousScore = (int) Math.ceil(previousScore * 0.9);
+                else if (elapsed > previousLevel.getPenaltyTimeThreshold())
+                    previousScore = (int) (previousScore * 1.1);
+
+                this.currentScore = previousScore;
+            }
+
             this.onLevelScoreUpdated(previousLevel, previousScore);
         }
 
         boolean success = this.nextLevelInternal();
         if (success) {
-            this.gameClock.reset();
-            this.gameClock.start();
+            if (configuration.areTimersActive()) {
+                this.gameClock.reset();
+                this.gameClock.start();
+            }
+
             this.onNextLevel(previousLevel, previousScore, this.currentLevel, this.totalScore);
 
             if (++this.currentStreak >= this.configuration.getLifeRecoveryThreshold()) {
@@ -339,8 +348,12 @@ public class GameController {
         this.totalScore = 0;
         this.currentLevelReset = false;
         this.powerUps = EnumSet.noneOf(GamePowerup.class);
-        this.gameClock.reset();
-        this.gameClock.start();
+
+        if (this.configuration.areTimersActive()) {
+            this.gameClock.reset();
+            this.gameClock.start();
+        }
+
         this.onGameStarted(this.currentLevel, this.currentLives);
         this.onLivesUpdated(this.currentLives, this.configuration.getMaxLives());
         this.onPowerupsUpdated(this.getActivePowerups());
@@ -376,10 +389,14 @@ public class GameController {
 
         DebugWriter.INSTANCE.logMessage("GAME", "Pause status: %b", this.gamePaused);
         if (this.gamePaused) {
-            this.gameClock.stop(true);
+            if (this.configuration.areTimersActive())
+                this.gameClock.stop(true);
+
             this.onGamePaused();
         } else {
-            this.gameClock.start();
+            if (this.configuration.areTimersActive())
+                this.gameClock.start();
+
             this.onGameResumed();
         }
     }
@@ -396,7 +413,8 @@ public class GameController {
 
         this.currentLevelReset = true;
 
-        this.gameClock.reset();
+        if (this.configuration.areTimersActive())
+            this.gameClock.reset();
 
         if (this.currentLives > 0) {
             this.currentLives--;
@@ -552,13 +570,16 @@ public class GameController {
         if (this.currentLevel == null)
             return;
 
-        long elapsed = this.gameClock.getElapsedSeconds();
-        this.onTimerUpdated(elapsed,
-                this.currentLevel.getBonusTimeThreshold(),
-                this.currentLevel.getPenaltyTimeThreshold(),
-                this.currentLevel.getFailTimeThreshold());
-        if (elapsed > this.currentLevel.getFailTimeThreshold())
-            this.resetLevel();
+        if (this.configuration.areTimersActive()) {
+            long elapsed = this.gameClock.getElapsedSeconds();
+
+            this.onTimerUpdated(elapsed,
+                    this.currentLevel.getBonusTimeThreshold(),
+                    this.currentLevel.getPenaltyTimeThreshold(),
+                    this.currentLevel.getFailTimeThreshold());
+            if (elapsed > this.currentLevel.getFailTimeThreshold())
+                this.resetLevel();
+        }
     }
 
     // event dispatchers
