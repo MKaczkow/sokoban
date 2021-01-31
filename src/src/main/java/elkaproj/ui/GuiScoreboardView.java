@@ -13,7 +13,7 @@ import java.util.Comparator;
 /**
  * Presents the scoreboard.
  */
-public class GuiScoreboard extends JPanel implements Runnable {
+public class GuiScoreboardView extends JPanel implements Runnable {
 
     public static final String STRING_SCOREBOARD_PLAYER_L10N_ID = "scoreboard.player";
     public static final String STRING_SCOREBOARD_SCORE_L10N_ID = "scoreboard.score";
@@ -35,11 +35,11 @@ public class GuiScoreboard extends JPanel implements Runnable {
      * @param levelPack       Level pack the scoreboard is for.
      * @param language        Language to laod strings from.
      */
-    public GuiScoreboard(ActionListener buttonListener,
-                         IScoreboardStore scoreboardStore,
-                         IScoreboard scoreboard,
-                         ILevelPack levelPack,
-                         Language language) {
+    public GuiScoreboardView(ActionListener buttonListener,
+                             IScoreboardStore scoreboardStore,
+                             IScoreboard scoreboard,
+                             ILevelPack levelPack,
+                             Language language) {
 
         this.scoreboardStore = scoreboardStore;
         this.scoreboard = scoreboard;

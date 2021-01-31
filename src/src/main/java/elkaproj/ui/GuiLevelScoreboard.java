@@ -33,9 +33,9 @@ public class GuiLevelScoreboard extends JPanel {
 
         this.scoreboard = scoreboard;
 
-        String strNumber = language.getValue(GuiScoreboard.STRING_SCOREBOARD_NUMBER_L10N_ID);
-        String strPlayer = language.getValue(GuiScoreboard.STRING_SCOREBOARD_PLAYER_L10N_ID);
-        String strScore = language.getValue(GuiScoreboard.STRING_SCOREBOARD_SCORE_L10N_ID);
+        String strNumber = language.getValue(GuiScoreboardView.STRING_SCOREBOARD_NUMBER_L10N_ID);
+        String strPlayer = language.getValue(GuiScoreboardView.STRING_SCOREBOARD_PLAYER_L10N_ID);
+        String strScore = language.getValue(GuiScoreboardView.STRING_SCOREBOARD_SCORE_L10N_ID);
         this.headers = new String[]{strNumber, strPlayer, strScore};
 
         this.setLayout(new BorderLayout());
@@ -74,7 +74,7 @@ public class GuiLevelScoreboard extends JPanel {
 
         public ScoreboardTableModel(IScoreboard scoreboard, String[] headers, ILevel level) {
             this.entries = scoreboard.getLevelEntries(level);
-            this.entries.sort(new GuiScoreboard.ScoreboardEntryComparator());
+            this.entries.sort(new GuiScoreboardView.ScoreboardEntryComparator());
             this.headers = headers;
         }
 

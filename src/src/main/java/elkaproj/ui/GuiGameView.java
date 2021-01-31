@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 /**
  * Root canvas, on which the actual game will be drawn.
  */
-public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecycleHandler, KeyListener {
+public class GuiGameView extends Canvas implements IGameEventHandler, IGameLifecycleHandler, KeyListener {
 
     private final float animationFrameDelay;
     private final int animationDuration = 150;
@@ -62,7 +62,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
      * @param savingString   String displayed when scores are saving.
      * @throws IOException Loading tile graphics failed.
      */
-    public GuiCanvas(GameController gameController, String pauseString, String savingString) throws IOException {
+    public GuiGameView(GameController gameController, String pauseString, String savingString) throws IOException {
         this.pauseString = pauseString;
         this.savingString = savingString;
         this.gameController = gameController;
@@ -382,11 +382,11 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
     private static class BoardTimer implements Runnable {
 
-        private final GuiCanvas guiCanvas;
+        private final GuiGameView guiGameView;
         private boolean run = true;
 
-        public BoardTimer(GuiCanvas guiCanvas) {
-            this.guiCanvas = guiCanvas;
+        public BoardTimer(GuiGameView guiGameView) {
+            this.guiGameView = guiGameView;
         }
 
         @Override
@@ -399,19 +399,19 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
                     Thread.yield();
 
-                    if (!this.guiCanvas.gameController.isGameRunning() || !this.guiCanvas.isRunning)
+                    if (!this.guiGameView.gameController.isGameRunning() || !this.guiGameView.isRunning)
                         continue;
 
-                    this.guiCanvas.gameController.tick();
+                    this.guiGameView.gameController.tick();
 
-                    BufferStrategy bs = this.guiCanvas.bs;
+                    BufferStrategy bs = this.guiGameView.bs;
                     if (bs == null)
                         continue;
 
                     do {
                         do {
                             Graphics2D g = (Graphics2D) bs.getDrawGraphics();
-                            this.guiCanvas.redrawGame(g);
+                            this.guiGameView.redrawGame(g);
                             g.dispose();
                         } while (bs.contentsRestored());
 
@@ -420,7 +420,7 @@ public class GuiCanvas extends Canvas implements IGameEventHandler, IGameLifecyc
 
                     nt = System.nanoTime() - nt;
 
-                    int wait = (int) (this.guiCanvas.animationFrameDelay * 1e6 - nt);
+                    int wait = (int) (this.guiGameView.animationFrameDelay * 1e6 - nt);
                     if (wait > 0) {
                         Thread.sleep(wait / 1000000, wait % 1000000);
                     }

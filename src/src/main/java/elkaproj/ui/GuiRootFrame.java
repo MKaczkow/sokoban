@@ -48,12 +48,12 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
     private final GuiMainMenuView mainMenuView;
 
-    private final GuiCanvas gameView;
+    private final GuiGameView gameView;
     private final GameController gameController;
 
     private final IScoreboardStore scoreboardStore;
     private final IScoreboard scoreboard;
-    private final GuiScoreboard scoreboardView;
+    private final GuiScoreboardView scoreboardView;
 
     private Component activeComponent = null;
 
@@ -100,7 +100,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
         this.setActiveView(this.playerNameView);
 
         this.mainMenuView = new GuiMainMenuView(this);
-        this.gameView = new GuiCanvas(this.gameController,
+        this.gameView = new GuiGameView(this.gameController,
                 this.language.getValue("misc.paused"),
                 this.language.getValue("misc.saving"));
 
@@ -109,7 +109,7 @@ public class GuiRootFrame extends JFrame implements ActionListener, IGameLifecyc
 
         this.scoreboardStore = scoreboardStore;
         this.scoreboard = scoreboard;
-        this.scoreboardView = new GuiScoreboard(this, this.scoreboardStore, this.scoreboard, levelPack, this.language);
+        this.scoreboardView = new GuiScoreboardView(this, this.scoreboardStore, this.scoreboard, levelPack, this.language);
     }
 
     private void localize(Component[] components) {

@@ -30,9 +30,9 @@ public class GuiTotalScoreboard extends JPanel {
 
         this.scoreboard = scoreboard;
 
-        String strNumber = language.getValue(GuiScoreboard.STRING_SCOREBOARD_NUMBER_L10N_ID);
-        String strPlayer = language.getValue(GuiScoreboard.STRING_SCOREBOARD_PLAYER_L10N_ID);
-        String strScore = language.getValue(GuiScoreboard.STRING_SCOREBOARD_SCORE_L10N_ID);
+        String strNumber = language.getValue(GuiScoreboardView.STRING_SCOREBOARD_NUMBER_L10N_ID);
+        String strPlayer = language.getValue(GuiScoreboardView.STRING_SCOREBOARD_PLAYER_L10N_ID);
+        String strScore = language.getValue(GuiScoreboardView.STRING_SCOREBOARD_SCORE_L10N_ID);
         this.headers = new String[]{strNumber, strPlayer, strScore};
 
         this.setLayout(new BorderLayout());
@@ -61,7 +61,7 @@ public class GuiTotalScoreboard extends JPanel {
                     .stream()
                     .filter(IScoreboardTotalEntry::hasCompletedAllLevels)
                     .collect(Collectors.toList());
-            this.entries.sort(new GuiScoreboard.ScoreboardTotalEntryComparator());
+            this.entries.sort(new GuiScoreboardView.ScoreboardTotalEntryComparator());
             this.headers = headers;
         }
 
